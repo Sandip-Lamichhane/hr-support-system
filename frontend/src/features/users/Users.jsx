@@ -1,21 +1,40 @@
 import React, { useState } from 'react';
-import { Search, Plus, Download, Edit, Trash2, MoreVertical, Mail, Phone, Check, X, Calendar, Users } from 'lucide-react';
+import { Search, Plus, Download, Edit, Trash2, MoreVertical, Mail, Phone, Check, X, Calendar, Users, Eye, EyeOff } from 'lucide-react';
 
 const UserManagement = () => {
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('active');
+    const [showModal, setShowModal] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        department: '',
+        role: 'User',
+        status: 'Active'
+    });
 
-    const users = [
+    const departments = [
+        { id: 1, name: 'Engineering' },
+        { id: 2, name: 'Marketing' },
+        { id: 3, name: 'Sales' },
+        { id: 4, name: 'HR' },
+        { id: 5, name: 'Finance' },
+        { id: 6, name: 'Operations' }
+    ];
+
+    const [users, setUsers] = useState([
         { id: 1, name: 'John Smith', email: 'john.smith@example.com', phone: '+1 234-567-8900', role: 'Admin', status: 'Active', joined: '2024-01-15', avatar: 'JS' },
-        { id: 2, name: 'Sarah Johnson', email: 'sarah.j@example.com', phone: '+1 234-567-8901', role: 'Editor', status: 'Active', joined: '2024-02-20', avatar: 'SJ' },
+        { id: 2, name: 'Sarah Johnson', email: 'sarah.j@example.com', phone: '+1 234-567-8901', role: 'User', status: 'Active', joined: '2024-02-20', avatar: 'SJ' },
         { id: 3, name: 'Michael Brown', email: 'michael.b@example.com', phone: '+1 234-567-8902', role: 'User', status: 'Active', joined: '2024-03-10', avatar: 'MB' },
         { id: 4, name: 'Emily Davis', email: 'emily.d@example.com', phone: '+1 234-567-8903', role: 'User', status: 'Inactive', joined: '2024-01-25', avatar: 'ED' },
-        { id: 5, name: 'David Wilson', email: 'david.w@example.com', phone: '+1 234-567-8904', role: 'Editor', status: 'Active', joined: '2024-04-05', avatar: 'DW' },
+        { id: 5, name: 'David Wilson', email: 'david.w@example.com', phone: '+1 234-567-8904', role: 'Admin', status: 'Active', joined: '2024-04-05', avatar: 'DW' },
         { id: 6, name: 'Lisa Anderson', email: 'lisa.a@example.com', phone: '+1 234-567-8905', role: 'User', status: 'Pending', joined: '2024-12-01', avatar: 'LA' },
         { id: 7, name: 'Robert Taylor', email: 'robert.t@example.com', phone: '+1 234-567-8906', role: 'Admin', status: 'Active', joined: '2023-11-15', avatar: 'RT' },
         { id: 8, name: 'Jennifer Martinez', email: 'jennifer.m@example.com', phone: '+1 234-567-8907', role: 'User', status: 'Active', joined: '2024-05-20', avatar: 'JM' },
-    ];
+    ]);
 
     const filteredUsers = users.filter(user => {
         const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -40,11 +59,48 @@ const UserManagement = () => {
         }
     };
 
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleAddUser = () => {
+        if (!formData.name || !formData.email || !formData.password) {
+            alert('Please fill in all required fields (Name, Email, Password)');
+            return;
+        }
+
+        const avatar = formData.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        const phone = '+1 234-567-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+
+        const newUser = {
+            id: users.length + 1,
+            ...formData,
+            phone,
+            avatar,
+            joined: new Date().toISOString().split('T')[0]
+        };
+
+        setUsers([newUser, ...users]);
+        setShowModal(false);
+        setFormData({
+            name: '',
+            email: '',
+            password: '',
+            department: '',
+            role: 'User',
+            status: 'Active',
+        });
+        setShowPassword(false);
+    };
+
     const getStatusColor = (status) => {
         switch (status.toLowerCase()) {
             case 'active': return 'bg-emerald-100 text-emerald-700';
             case 'inactive': return 'bg-gray-100 text-gray-700';
-            case 'pending': return 'bg-amber-100 text-amber-700';
             default: return 'bg-gray-100 text-gray-700';
         }
     };
@@ -52,7 +108,6 @@ const UserManagement = () => {
     const getRoleColor = (role) => {
         switch (role.toLowerCase()) {
             case 'admin': return 'bg-purple-100 text-purple-700';
-            case 'editor': return 'bg-blue-100 text-blue-700';
             case 'user': return 'bg-sky-100 text-sky-700';
             default: return 'bg-gray-100 text-gray-700';
         }
@@ -144,7 +199,7 @@ const UserManagement = () => {
                             <Download className="w-4 h-4" />
                             <span>Export</span>
                         </button>
-                        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all">
+                        <button onClick={() => setShowModal(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all">
                             <Plus className="w-4 h-4" />
                             <span>Add User</span>
                         </button>
@@ -264,6 +319,130 @@ const UserManagement = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Add User Modal */}
+            {showModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+                        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <h2 className="text-xl font-bold text-gray-800">Add New User</h2>
+                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            {/* Name */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    placeholder="John Smith"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                                />
+                            </div>
+
+                            {/* Email */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    placeholder="john@example.com"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                                />
+                            </div>
+
+                            {/* Password */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleInputChange}
+                                        placeholder="••••••••"
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Department */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                                <select
+                                    name="department"
+                                    value={formData.department}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                                >
+                                    <option value="" disabled>Select Department</option>
+                                    {departments.map(dept => (
+                                        <option key={dept.id} value={dept.name}>{dept.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Role */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                                <select
+                                    name="role"
+                                    value={formData.role}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                                >
+                                    <option value="User">User</option>
+                                    <option value="Admin">Admin</option>
+                                </select>
+                            </div>
+
+                            {/* Status */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                                >
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                            </div>
+
+                            {/* Buttons */}
+                            <div className="flex gap-3 pt-4 border-t border-gray-200">
+                                <button
+                                    onClick={() => setShowModal(false)}
+                                    className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAddUser}
+                                    className="flex-1 px-4 py-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all font-medium"
+                                >
+                                    Create User
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
