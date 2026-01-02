@@ -17,4 +17,15 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+//fetch users
+export const getUsers = async () =>{
+    try{
+        const response = await api.get('/users');
+        return response.data;
+    }catch(error){
+        console.error('Error fetching users:', error);
+        throw error;
+    }
+};
+
 export default api;
