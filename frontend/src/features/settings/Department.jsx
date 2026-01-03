@@ -4,6 +4,7 @@ import {
     Building2, Users, Briefcase, AlertCircle, X, Check
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getDepartments } from '../../services/department.service';
 
 const Department = () => {
     const [departments, setDepartments] = useState([]);
@@ -20,62 +21,21 @@ const Department = () => {
         details: ''
     });
 
+    useEffect(() => {
+        fetchDepartments();
+    }, []);
 
-    // const createDepartment = async () => {
-    //     setSubmitting(true);
-    //     try {
-    //         const res = await fetch('/api/departments', {
-    //             method: 'POST',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify(formData),
-    //         });
-
-    //         if (!res.ok) throw new Error('Failed to create department');
-
-    //         toast.success(`Department "${formData.name}" created`);
-    //         closeModal();
-    //         fetchDepartments();
-    //     } catch (err) {
-    //         toast.error(err.message);
-    //     } finally {
-    //         setSubmitting(false);
-    //     }
-    // };
-
-    // const updateDepartment = async () => {
-    //     setSubmitting(true);
-    //     try {
-    //         const res = await fetch(`/api/departments/${editingDepartment.id}`, {
-    //             method: 'PUT',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify(formData),
-    //         });
-
-    //         if (!res.ok) throw new Error('Failed to update department');
-
-    //         toast.success(`Department updated`);
-    //         closeModal();
-    //         fetchDepartments();
-    //     } catch (err) {
-    //         toast.error(err.message);
-    //     } finally {
-    //         setSubmitting(false);
-    //     }
-    // };
-
-    // const deleteDepartment = async (id, name) => {
-    //     if (!confirm(`Delete "${name}"?`)) return;
-
-    //     try {
-    //         const res = await fetch(`/api/departments/${id}`, { method: 'DELETE' });
-    //         if (!res.ok) throw new Error('Delete failed');
-
-    //         toast.success(`"${name}" deleted`);
-    //         fetchDepartments();
-    //     } catch (err) {
-    //         toast.error(err.message);
-    //     }
-    // };
+    const fetchDepartments = async () => {
+        try {
+            setLoading(true);
+            const res = await getDepartments();
+            setDepartments(res.data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     /* =======================
        HELPERS
@@ -149,17 +109,39 @@ const Department = () => {
     /* =======================
        UI
     ======================= */
-    if (loading) return <div className="p-8 text-center">Loading...</div>;
-
-    if (error) {
+    if (loading) {
         return (
-            <div className="p-8 text-center text-red-600">
-                <AlertCircle className="mx-auto mb-2" />
-                {error}
+            <div className="p-8 bg-gray-50 min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mb-4"></div>
+                    <p className="text-gray-600">Loading users...</p>
+                </div>
             </div>
         );
     }
 
+    // Error state
+    if (error) {
+        return (
+            <div className="p-8 bg-gray-50 min-h-screen">
+                <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-2xl mx-auto">
+                    <div className="flex items-start gap-3">
+                        <X className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <h3 className="text-lg font-semibold text-red-800 mb-2">Error Loading Users</h3>
+                            <p className="text-red-600 mb-4">{error}</p>
+                            <button
+                                onClick={fetchDepartments}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                            >
+                                Try Again
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
     return (
         <div className="p-8 bg-gray-50 min-h-screen">
             {/* Header */}
@@ -213,7 +195,7 @@ const Department = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white p-6 rounded-xl w-full max-w-md">
                         <div className="flex justify-between mb-4">
                             <h2 className="font-bold">
