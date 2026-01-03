@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
-    public function Department()
+    public function GetDepartment()
     {
         $department = Department::orderBy('created_at', 'desc')->get();
 
@@ -16,5 +16,21 @@ class DepartmentController extends Controller
             'success' => 'true',
             'data' => $department
         ]);
+    }
+
+    public function StoreDepartment(Request $request)
+    {
+        $validated = $request -> validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'status'      => 'required|in:Active,Inactive',
+        ]);
+
+        $department = Department::create($validated);
+
+        return response()->json([
+            'message' => 'Department added successfull.',
+            'department' => $department,
+        ], 201);
     }
 }

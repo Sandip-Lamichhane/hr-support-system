@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Search, Plus, Download, Edit, Trash2,
-    Building2, Users, Briefcase, AlertCircle, X, Check
+    Search, Plus, Download, Edit, Trash2, X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { getDepartments } from '../../services/department.service';
+import { createDepartments, getDepartments } from '../../services/department.service';
 
 const Department = () => {
     const [departments, setDepartments] = useState([]);
@@ -18,31 +17,74 @@ const Department = () => {
 
     const [formData, setFormData] = useState({
         name: '',
-        details: ''
+        description: ''
     });
 
+    // Fetch departments on mount
     useEffect(() => {
         fetchDepartments();
     }, []);
 
+    // Fetch all departments
     const fetchDepartments = async () => {
         try {
             setLoading(true);
             const res = await getDepartments();
             setDepartments(res.data);
-        } catch (error) {
-            console.error(error);
+        } catch (err) {
+            console.error(err);
+            setError('Failed to load departments.');
         } finally {
             setLoading(false);
         }
-    }
+    };
 
-    /* =======================
-       HELPERS
-    ======================= */
+    // Create a new department
+    const storeDepartments = async () => {
+        if (!formData.name.trim() || !formData.description.trim()) {
+            return toast.error("Please fill in all fields");
+        }
+
+        try {
+            setSubmitting(true);
+
+            const payload = {
+                name: formData.name,
+                description: formData.description,
+                status: 'Active', // default active
+            };
+
+            await createDepartments(payload);
+
+            toast.success('Department created successfully!');
+            closeModal();
+            fetchDepartments(); // refresh list
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to create department');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    // // Delete department
+    // const handleDelete = async (id, name) => {
+    //     if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
+
+    //     try {
+    //         await deleteDepartmentById(id);
+    //         toast.success('Department deleted successfully');
+    //         setDepartments(prev => prev.filter(d => d.id !== id));
+    //     } catch (err) {
+    //         console.error(err);
+    //         toast.error('Failed to delete department');
+    //     }
+    // };
+
+    // Search filter
     const filteredDepartments = departments.filter(d =>
         d.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.details?.toLowerCase().includes(searchTerm.toLowerCase())
+        d.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const toggleDepartmentSelection = (id) => {
@@ -56,21 +98,9 @@ const Department = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const validateForm = () => {
-        if (!formData.name.trim()) return toast.error('Department name required');
-        if (!formData.details.trim()) return toast.error('Department details required');
-        return true;
-    };
-
     const openAddModal = () => {
         setEditingDepartment(null);
-        setFormData({ name: '', details: '' });
-        setShowModal(true);
-    };
-
-    const openEditModal = (dept) => {
-        setEditingDepartment(dept);
-        setFormData({ name: dept.name, details: dept.details });
+        setFormData({ name: '', description: '' });
         setShowModal(true);
     };
 
@@ -78,26 +108,20 @@ const Department = () => {
         if (submitting) return;
         setShowModal(false);
         setEditingDepartment(null);
-        setFormData({ name: '', details: '' });
+        setFormData({ name: '', description: '' });
     };
 
     const exportDepartments = () => {
         const rows = [
-            ['ID', 'Name', 'Details', 'Employees'],
+            ['ID', 'Name', 'Description'],
             ...(selectedDepartments.length
                 ? departments.filter(d => selectedDepartments.includes(d.id))
                 : filteredDepartments
-            ).map(d => [
-                `"${d.id}"`,
-                `"${d.name}"`,
-                `"${d.details}"`,
-                d.employeeCount ?? 0
-            ])
+            ).map(d => [d.id, d.name, d.description])
         ];
 
         const csv = rows.map(r => r.join(',')).join('\n');
         const blob = new Blob([csv], { type: 'text/csv' });
-
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = 'departments.csv';
@@ -114,13 +138,12 @@ const Department = () => {
             <div className="p-8 bg-gray-50 min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mb-4"></div>
-                    <p className="text-gray-600">Loading users...</p>
+                    <p className="text-gray-600">Loading departments...</p>
                 </div>
             </div>
         );
     }
 
-    // Error state
     if (error) {
         return (
             <div className="p-8 bg-gray-50 min-h-screen">
@@ -128,7 +151,7 @@ const Department = () => {
                     <div className="flex items-start gap-3">
                         <X className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
                         <div>
-                            <h3 className="text-lg font-semibold text-red-800 mb-2">Error Loading Users</h3>
+                            <h3 className="text-lg font-semibold text-red-800 mb-2">Error Loading Departments</h3>
                             <p className="text-red-600 mb-4">{error}</p>
                             <button
                                 onClick={fetchDepartments}
@@ -142,17 +165,26 @@ const Department = () => {
             </div>
         );
     }
+
     return (
         <div className="p-8 bg-gray-50 min-h-screen">
             {/* Header */}
             <div className="flex justify-between mb-6">
                 <h1 className="text-3xl font-bold">Departments</h1>
-                <button
-                    onClick={openAddModal}
-                    className="px-4 py-2 bg-sky-500 text-white rounded-lg flex gap-2"
-                >
-                    <Plus size={16} /> Add
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={openAddModal}
+                        className="px-4 bg-sky-500 text-white rounded-lg flex gap-2"
+                    >
+                        <Plus size={16} /> Add
+                    </button>
+                    <button
+                        onClick={exportDepartments}
+                        className="px-4 py-1 bg-gray-600 text-white rounded-lg"
+                    >
+                        <Download size={16} /> Export
+                    </button>
+                </div>
             </div>
 
             {/* Search */}
@@ -179,16 +211,20 @@ const Department = () => {
                             <div className="flex gap-2">
                                 <Edit
                                     className="cursor-pointer text-sky-600"
-                                    onClick={() => openEditModal(d)}
+                                    onClick={() => {
+                                        setEditingDepartment(d);
+                                        setFormData({ name: d.name, description: d.description });
+                                        setShowModal(true);
+                                    }}
                                 />
                                 <Trash2
                                     className="cursor-pointer text-red-600"
-                                    onClick={() => deleteDepartment(d.id, d.name)}
+                                    onClick={() => handleDelete(d.id, d.name)}
                                 />
                             </div>
                         </div>
                         <h3 className="font-bold">{d.name}</h3>
-                        <p className="text-sm text-gray-500">{d.details}</p>
+                        <p className="text-sm text-gray-500">{d.description}</p>
                     </div>
                 ))}
             </div>
@@ -198,9 +234,7 @@ const Department = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white p-6 rounded-xl w-full max-w-md">
                         <div className="flex justify-between mb-4">
-                            <h2 className="font-bold">
-                                {editingDepartment ? 'Edit' : 'Add'} Department
-                            </h2>
+                            <h2 className="font-bold">{editingDepartment ? 'Edit' : 'Add'} Department</h2>
                             <X onClick={closeModal} className="cursor-pointer" />
                         </div>
 
@@ -213,19 +247,16 @@ const Department = () => {
                         />
                         <textarea
                             className="w-full mb-4 p-2 border rounded"
-                            name="details"
-                            value={formData.details}
+                            name="description"
+                            value={formData.description}
                             onChange={handleInputChange}
-                            placeholder="Details"
+                            placeholder="Description"
                         />
 
                         <button
-                            disabled={submitting}
-                            onClick={() => {
-                                if (!validateForm()) return;
-                                editingDepartment ? updateDepartment() : createDepartment();
-                            }}
+                            onClick={storeDepartments}
                             className="w-full bg-sky-500 text-white py-2 rounded-lg"
+                            disabled={submitting}
                         >
                             {submitting ? 'Processing...' : 'Save'}
                         </button>
