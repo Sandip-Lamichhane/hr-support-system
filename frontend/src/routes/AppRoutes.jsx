@@ -8,6 +8,7 @@ import AdminDashboard from "../features/dashboard/AdminDashboard";
 import UserManagement from "../features/users/Users";
 import Tickets from "../features/tickets/Tickets";
 import ProtectedRoute from "./ProtectedRoute";
+import Department from "../features/settings/Department";
 
 export default function AppRoutes() {
     return (
@@ -27,6 +28,7 @@ export default function AppRoutes() {
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="tickets" element={<Tickets />} />
                     <Route path="users" element={<UserManagement />} />
+                    <Route path="settings/department" element={<Department />} /> 
                 </Route>
             </Route>
         </Routes>
