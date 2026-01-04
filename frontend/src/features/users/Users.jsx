@@ -5,6 +5,7 @@ import {
     Mail, Phone, Check, X, Calendar, Users, Eye, EyeOff
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getDepartments } from '../../services/department.service';
 
 const UserManagement = () => {
     // STATE
@@ -23,9 +24,9 @@ const UserManagement = () => {
         name: '',
         email: '',
         password: '',
-        department: '',
-        role: 'User',
-        status: 'Active',
+        department_id: '',
+        role: '',
+        status: '',
     });
 
     // Fetch users on component mount
@@ -48,41 +49,31 @@ const UserManagement = () => {
         }
     };
 
-    // const fetchDepartments = async () => {
-    //     try {
-    //         const res = await fetch('/api/departments');
-    //         const data = await res.json();
-    //         setDepartments(data);
-    //     } catch {
-    //         toast.error('Failed to fetch departments');
-    //     }
-    // };
+    //fetch departments
+    useEffect(() => {
+        fetchDepartments();
+    }, []);
 
-    // const createUser = async () => {
-    //     try {
-    //         await fetch('/api/users', {
-    //             method: 'POST',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify(formData),
-    //         });
+    const fetchDepartments = async () => {
+        try {
+            const res = await getDepartments();
+            setDepartments(res.data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
-    //         toast.success(`User ${formData.name} added successfully`);
-    //         setShowModal(false);
-    //         setShowPassword(false);
-    //         setFormData({
-    //             name: '',
-    //             email: '',
-    //             password: '',
-    //             department: '',
-    //             role: 'User',
-    //             status: 'Active',
-    //         });
+        //Create Users
+    const handleAddUser = async () => {
+        if(!formData.name || !formData.email || !formData.password || formData.department_id){
+            toast.error('Please fill all required fields.');
+            return;
+        }
 
-    //         fetchUsers();
-    //     } catch {
-    //         toast.error('Failed to create user');
-    //     }
-    // };
+        try{
+
+        }
+    } 
 
     /* =======================
        HELPERS
@@ -476,7 +467,7 @@ const UserManagement = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
                                 <select
                                     name="department"
-                                    value={formData.department}
+                                    value={formData.department_id}
                                     onChange={handleInputChange}
                                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                                 >
