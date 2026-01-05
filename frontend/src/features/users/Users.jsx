@@ -369,7 +369,7 @@ const UserManagement = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-600">
-                                                {departments.find(d => d.id === user.department_id)?.name || 'N/A'}
+                                                {departments.find(d => d.id === user.department_id)?.name || 'N/A'} 
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2">
