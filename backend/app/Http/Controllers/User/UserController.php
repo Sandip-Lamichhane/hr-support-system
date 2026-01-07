@@ -9,9 +9,16 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    public function GetUser()
+    {
+        $users = User::all();
+
+        return response()->json($users);
+    }
+
     public function StoreUser(Request $request)
     {
-        
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -38,10 +45,21 @@ class UserController extends Controller
         ], 201);
     }
 
-    public function users()
+    public function UpdateUser(Request $request, User $user)
     {
-        $users = User::all();
 
-        return response()->json($users);
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'department_id' => 'required|exists:departments,id',
+            'role' => 'required|in:User,Admin',
+            'status' => 'required|in:Active,Inactive,Pending',
+        ]);
+
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'User updated succesfully!',
+            'user' => $user
+        ]);
     }
 }
