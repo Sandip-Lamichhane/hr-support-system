@@ -14,12 +14,13 @@ const UserManagement = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [departments, setDepartments] = useState([]);
-
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
     const [showModal, setShowModal] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [editingUserId, setEditingUserId] = useState(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -88,6 +89,40 @@ const UserManagement = () => {
         }
     };
 
+    const handleEditUser = (user) => {
+        setIsEditMode(true);
+        setEditingUserId(user.id);
+        setShowPassword(false);
+
+        setFormData({
+            name: user.name,
+            email: user.email,
+            department_id: user.department_id,
+            role: user.role,
+            status: user.status,
+        });
+
+        setShowModal(true);
+    };
+
+    const handleUpdateUser = async () => {
+        try {
+            await updateUser(editingUserId, {
+                name: formData.name,
+                email: formData.email,
+                department_id: Number(formData.department_id),
+                role: formData.role,
+                status: formData.status,
+            });
+
+            toast.success('User updated successfully!');
+            setShowModal(false);
+            fetchUsers();
+        } catch (error) {
+            toast.error('Failed to update user');
+            console.error(error);
+        }
+    };
 
     /* =======================
        HELPERS
@@ -267,7 +302,12 @@ const UserManagement = () => {
                             <Download className="w-4 h-4" />
                             <span>Export</span>
                         </button>
-                        <button onClick={() => setShowModal(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all">
+                        <button onClick={() => {
+                            setIsEditMode(false);
+                            setEditingUserId(null);
+                            setShowPassword(false);
+                            setShowModal(true);
+                        }} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all">
                             <Plus className="w-4 h-4" />
                             <span>Add User</span>
                         </button>
@@ -369,11 +409,12 @@ const UserManagement = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-600">
-                                                {departments.find(d => d.id === user.department_id)?.name || 'N/A'} 
+                                                {departments.find(d => d.id === user.department_id)?.name || 'N/A'}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2">
-                                                    <button className="p-2 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors">
+                                                    <button onClick={() => handleEditUser(user)}
+                                                        className="p-2 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors">
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
@@ -411,7 +452,9 @@ const UserManagement = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
                         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-gray-800">Add New User</h2>
+                            <h2 className="text-xl font-bold text-gray-800">
+                                {isEditMode ? 'Edit User' : 'Add New User'}
+                            </h2>
                             <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
                                 <X className="w-5 h-5" />
                             </button>
@@ -442,32 +485,39 @@ const UserManagement = () => {
                                     value={formData.email}
                                     onChange={handleInputChange}
                                     placeholder="john@example.com"
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                                    disabled={isEditMode}
+                                    className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent
+                                    ${isEditMode ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''}
+                                 `}
                                 />
                             </div>
 
                             {/* Password */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                                <div className="relative">
-                                    <input
-                                        type={showPassword ? 'text' : 'password'}
-                                        name="password"
-                                        required
-                                        value={formData.password}
-                                        onChange={handleInputChange}
-                                        placeholder="••••••••"
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                    >
-                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                    </button>
-                                </div>
-                            </div>
+                            {!isEditMode && (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                        <div className="relative">
+                                            <input
+                                                type={showPassword ? 'text' : 'password'}
+                                                name="password"
+                                                required
+                                                value={formData.password}
+                                                onChange={handleInputChange}
+                                                placeholder="••••••••"
+                                                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                            >
+                                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
 
                             {/* Department */}
                             <div>
@@ -523,16 +573,18 @@ const UserManagement = () => {
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={handleAddUser}
+                                    onClick={isEditMode ? handleUpdateUser : handleAddUser}
                                     className="flex-1 px-4 py-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all font-medium"
                                 >
-                                    Create User
+                                    {isEditMode ? 'Update User' : 'Create User'}
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
+
+
         </div>
     );
 };
