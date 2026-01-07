@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getDepartments } from '../../services/department.service';
-import { CreateUsers } from '../../services/user.service';
+import { CreateUsers, UpdatUsers } from '../../services/user.service';
 
 const UserManagement = () => {
     // STATE
@@ -21,6 +21,7 @@ const UserManagement = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [editingUserId, setEditingUserId] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -67,6 +68,7 @@ const UserManagement = () => {
 
     //Create Users
     const handleAddUser = async () => {
+
         const requiredFields = ['name', 'email', 'password', 'department_id', 'role', 'status'];
         for (let field of requiredFields) {
             if (!formData[field]) {
@@ -74,6 +76,8 @@ const UserManagement = () => {
                 return;
             }
         }
+
+        setSubmitting(true);
 
         try {
             await CreateUsers({ ...formData, department_id: Number(formData.department_id) });
@@ -86,6 +90,8 @@ const UserManagement = () => {
                 ? Object.values(error.response.data.errors).flat().join(' | ')
                 : error.response?.data?.message || 'Failed to create User!';
             toast.error(messages);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -106,10 +112,10 @@ const UserManagement = () => {
     };
 
     const handleUpdateUser = async () => {
+        setSubmitting(true);
         try {
-            await updateUser(editingUserId, {
+            await UpdatUsers(editingUserId, {
                 name: formData.name,
-                email: formData.email,
                 department_id: Number(formData.department_id),
                 role: formData.role,
                 status: formData.status,
@@ -117,10 +123,15 @@ const UserManagement = () => {
 
             toast.success('User updated successfully!');
             setShowModal(false);
+            setFormData(true);
+            setIsEditMode(false);
+            setEditingUserId(null);
             fetchUsers();
         } catch (error) {
             toast.error('Failed to update user');
             console.error(error);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -571,8 +582,11 @@ const UserManagement = () => {
                             <div className="flex gap-3 pt-4 border-t border-gray-200">
                                 <button
                                     onClick={() => {
-                                        setShowModal(false)
-                                        setFormData(true)
+                                        setShowModal(false);
+                                        setFormData(false);
+                                        setIsEditMode(false);
+                                        setEditingUserId(null);
+                                        setShowPassword(false);
                                     }}
                                     className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium"
                                 >
@@ -581,8 +595,9 @@ const UserManagement = () => {
                                 <button
                                     onClick={isEditMode ? handleUpdateUser : handleAddUser}
                                     className="flex-1 px-4 py-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all font-medium"
+                                    disabled={submitting}
                                 >
-                                    {isEditMode ? 'Update User' : 'Create User'}
+                                    {submitting ? 'Processing...' : isEditMode ? 'Update User' : 'Create User'}
                                 </button>
                             </div>
                         </div>
