@@ -1,95 +1,32 @@
-import React, { useState } from 'react';
-import { Search, Download, Plus, Edit2, Trash2, MoreVertical, Clock, CheckCircle, AlertCircle, XCircle, Calendar, User, Filter } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Download, Plus, Edit2, Trash2, MoreVertical, Clock, CheckCircle, AlertCircle, XCircle, Calendar, User, Filter, Loader } from 'lucide-react';
 
 const TicketManagement = () => {
     const [activeFilter, setActiveFilter] = useState('all');
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [assignToId, setAssignToId] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
 
-    const employees = [
-        { id: 1, name: 'John Smith', role: 'Admin' },
-        { id: 2, name: 'Sarah Johnson', role: 'Editor' },
-        { id: 3, name: 'Michael Brown', role: 'User' },
-        { id: 4, name: 'David Wilson', role: 'User' }
-    ];
+    // API Base URL - Update this with your actual API endpoint
+    const API_BASE_URL = 'http://localhost:3000/api'; // Change this to your backend URL
 
-    const [tickets, setTickets] = useState([
-        {
-            id: 'TKT-001',
-            title: 'Login Authentication Issue',
-            description: 'Users unable to login with correct credentials',
-            status: 'open',
-            priority: 'high',
-            assignedTo: 'John Smith',
-            assignedToId: 1,
-            createdBy: 'Admin',
-            createdDate: '2024-12-15',
-            dueDate: '2024-12-20',
-            category: 'Technical'
-        },
-        {
-            id: 'TKT-002',
-            title: 'Update User Profile Feature',
-            description: 'Need to add profile picture upload functionality',
-            status: 'in-progress',
-            priority: 'medium',
-            assignedTo: 'Sarah Johnson',
-            assignedToId: 2,
-            createdBy: 'Admin',
-            createdDate: '2024-12-14',
-            dueDate: '2024-12-25',
-            category: 'Feature Request'
-        },
-        {
-            id: 'TKT-003',
-            title: 'Database Performance Optimization',
-            description: 'Slow query performance on reports page',
-            status: 'resolved',
-            priority: 'high',
-            assignedTo: 'Michael Brown',
-            assignedToId: 3,
-            createdBy: 'Admin',
-            createdDate: '2024-12-10',
-            dueDate: '2024-12-15',
-            category: 'Technical'
-        },
-        {
-            id: 'TKT-004',
-            title: 'Email Notification Not Working',
-            description: 'Users not receiving password reset emails',
-            status: 'open',
-            priority: 'critical',
-            assignedTo: null,
-            assignedToId: null,
-            createdBy: 'Admin',
-            createdDate: '2024-12-16',
-            dueDate: '2024-12-18',
-            category: 'Bug'
-        },
-        {
-            id: 'TKT-005',
-            title: 'Add Dark Mode Support',
-            description: 'Implement dark theme across the application',
-            status: 'in-progress',
-            priority: 'low',
-            assignedTo: 'David Wilson',
-            assignedToId: 4,
-            createdBy: 'Admin',
-            createdDate: '2024-12-12',
-            dueDate: '2024-12-30',
-            category: 'Feature Request'
-        }
-    ]);
+    const [employees, setEmployees] = useState([]);     
+    const [departments, setDepartments] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [tickets, setTickets] = useState([]);
 
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         priority: 'medium',
-        category: 'Technical',
-        dueDate: '',
-        assignedToId: ''
+        category_id: '',
+        department_id: '',
+        due_date: '',
+        assigned_to: ''
     });
 
     const statusConfig = {
@@ -106,6 +43,216 @@ const TicketManagement = () => {
         low: { label: 'Low', color: 'bg-gray-100 text-gray-700' }
     };
 
+    // Fetch all data on component mount
+    useEffect(() => {
+        fetchTickets();
+        fetchEmployees();
+        fetchDepartments();
+        fetchCategories();
+    }, []);
+
+    // API Functions
+    const fetchTickets = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/tickets`);
+            const data = await response.json();
+            setTickets(data);
+        } catch (error) {
+            console.error('Error fetching tickets:', error);
+            alert('Failed to fetch tickets');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchEmployees = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/employees`);
+            const data = await response.json();
+            setEmployees(data);
+        } catch (error) {
+            console.error('Error fetching employees:', error);
+        }
+    };
+
+    const fetchDepartments = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/departments`);
+            const data = await response.json();
+            setDepartments(data);
+        } catch (error) {
+            console.error('Error fetching departments:', error);
+        }
+    };
+
+    const fetchCategories = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/categories`);
+            const data = await response.json();
+            setCategories(data);
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+        }
+    };
+
+    const handleCreateTicket = async () => {
+        if (!formData.title || !formData.description) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/tickets`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                const newTicket = await response.json();
+                setTickets([newTicket, ...tickets]);
+                setFormData({
+                    title: '',
+                    description: '',
+                    priority: 'medium',
+                    category_id: '',
+                    department_id: '',
+                    due_date: '',
+                    assigned_to: ''
+                });
+                setShowCreateModal(false);
+                alert('Ticket created successfully');
+            } else {
+                throw new Error('Failed to create ticket');
+            }
+        } catch (error) {
+            console.error('Error creating ticket:', error);
+            alert('Failed to create ticket');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUpdateTicket = async () => {
+        if (!formData.title || !formData.description) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/tickets/${selectedTicket.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                const updatedTicket = await response.json();
+                setTickets(tickets.map(t => t.id === selectedTicket.id ? updatedTicket : t));
+                setShowEditModal(false);
+                setSelectedTicket(null);
+                setFormData({
+                    title: '',
+                    description: '',
+                    priority: 'medium',
+                    category_id: '',
+                    department_id: '',
+                    due_date: '',
+                    assigned_to: ''
+                });
+                alert('Ticket updated successfully');
+            } else {
+                throw new Error('Failed to update ticket');
+            }
+        } catch (error) {
+            console.error('Error updating ticket:', error);
+            alert('Failed to update ticket');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAssignTicket = async () => {
+        if (!selectedTicket || !assignToId) {
+            alert('Please select an employee');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/tickets/${selectedTicket.id}/assign`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    assigned_to: assignToId,
+                    status: 'in-progress'
+                })
+            });
+
+            if (response.ok) {
+                const updatedTicket = await response.json();
+                setTickets(tickets.map(t => t.id === selectedTicket.id ? updatedTicket : t));
+                setShowAssignModal(false);
+                setSelectedTicket(null);
+                setAssignToId('');
+                alert('Ticket assigned successfully');
+            } else {
+                throw new Error('Failed to assign ticket');
+            }
+        } catch (error) {
+            console.error('Error assigning ticket:', error);
+            alert('Failed to assign ticket');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteTicket = async (ticketId) => {
+        if (!confirm('Are you sure you want to delete this ticket?')) return;
+
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                setTickets(tickets.filter(t => t.id !== ticketId));
+                alert('Ticket deleted successfully');
+            } else {
+                throw new Error('Failed to delete ticket');
+            }
+        } catch (error) {
+            console.error('Error deleting ticket:', error);
+            alert('Failed to delete ticket');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleEditClick = (ticket) => {
+        setSelectedTicket(ticket);
+        setFormData({
+            title: ticket.title,
+            description: ticket.description,
+            priority: ticket.priority,
+            category_id: ticket.category_id,
+            department_id: ticket.department_id,
+            due_date: ticket.due_date,
+            assigned_to: ticket.assigned_to || ''
+        });
+        setShowEditModal(true);
+    };
+
     const stats = {
         total: tickets.length,
         open: tickets.filter(t => t.status === 'open').length,
@@ -114,55 +261,25 @@ const TicketManagement = () => {
     };
 
     const filteredTickets = tickets.filter(ticket => {
-        if (activeFilter === 'all') return true;
-        return ticket.status === activeFilter;
+        const matchesFilter = activeFilter === 'all' || ticket.status === activeFilter;
+        const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            ticket.ticket_number?.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesFilter && matchesSearch;
     });
 
-    const handleCreateTicket = () => {
-        if (!formData.title || !formData.description) return;
-
-        const newTicket = {
-            id: `TKT-${String(tickets.length + 1).padStart(3, '0')}`,
-            title: formData.title,
-            description: formData.description,
-            status: 'open',
-            priority: formData.priority,
-            assignedTo: formData.assignedToId ? employees.find(e => e.id === parseInt(formData.assignedToId))?.name : null,
-            assignedToId: formData.assignedToId ? parseInt(formData.assignedToId) : null,
-            createdBy: 'Admin',
-            createdDate: new Date().toISOString().split('T')[0],
-            dueDate: formData.dueDate,
-            category: formData.category
-        };
-
-        setTickets([newTicket, ...tickets]);
-        setFormData({
-            title: '',
-            description: '',
-            priority: 'medium',
-            category: 'Technical',
-            dueDate: '',
-            assignedToId: ''
-        });
-        setShowCreateModal(false);
+    const getEmployeeName = (employeeId) => {
+        const employee = employees.find(e => e.id === employeeId);
+        return employee ? employee.name : 'Unknown';
     };
 
-    const handleAssignTicket = () => {
-        if (!selectedTicket || !assignToId) return;
-
-        const employee = employees.find(e => e.id === parseInt(assignToId));
-        setTickets(tickets.map(t =>
-            t.id === selectedTicket.id
-                ? { ...t, assignedTo: employee?.name, assignedToId: employee?.id, status: 'in-progress' }
-                : t
-        ));
-        setShowAssignModal(false);
-        setSelectedTicket(null);
-        setAssignToId('');
+    const getCategoryName = (categoryId) => {
+        const category = categories.find(c => c.id === categoryId);
+        return category ? category.name : 'N/A';
     };
 
-    const handleDeleteTicket = (ticketId) => {
-        setTickets(tickets.filter(t => t.id !== ticketId));
+    const getDepartmentName = (departmentId) => {
+        const department = departments.find(d => d.id === departmentId);
+        return department ? department.name : 'N/A';
     };
 
     return (
@@ -235,6 +352,8 @@ const TicketManagement = () => {
                                 <input
                                     type="text"
                                     placeholder="Search tickets..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
                                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
@@ -253,9 +372,12 @@ const TicketManagement = () => {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <button className="flex items-center gap-2 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
-                                <Download className="w-4 h-4" />
-                                Export
+                            <button
+                                onClick={fetchTickets}
+                                className="flex items-center gap-2 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                            >
+                                {loading ? <Loader className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                Refresh
                             </button>
                             <button
                                 onClick={() => setShowCreateModal(true)}
@@ -269,105 +391,118 @@ const TicketManagement = () => {
                 </div>
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50 border-b border-gray-200">
-                                <tr>
-                                    <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        <input type="checkbox" className="rounded border-gray-300" />
-                                    </th>
-                                    <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Ticket ID</th>
-                                    <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Title</th>
-                                    <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                                    <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Priority</th>
-                                    <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Assigned To</th>
-                                    <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Due Date</th>
-                                    <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {filteredTickets.map((ticket) => {
-                                    const StatusIcon = statusConfig[ticket.status].icon;
-                                    return (
-                                        <tr key={ticket.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4">
-                                                <input type="checkbox" className="rounded border-gray-300" />
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="font-semibold text-blue-600">{ticket.id}</span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div>
-                                                    <p className="font-medium text-gray-900">{ticket.title}</p>
-                                                    <p className="text-sm text-gray-500 mt-1">{ticket.description}</p>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${statusConfig[ticket.status].color}`}>
-                                                    <StatusIcon className="w-3.5 h-3.5" />
-                                                    {statusConfig[ticket.status].label}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${priorityConfig[ticket.priority].color}`}>
-                                                    {priorityConfig[ticket.priority].label}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {ticket.assignedTo ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
-                                                            {ticket.assignedTo.split(' ').map(n => n[0]).join('')}
-                                                        </div>
-                                                        <span className="text-sm text-gray-900">{ticket.assignedTo}</span>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedTicket(ticket);
-                                                            setShowAssignModal(true);
-                                                        }}
-                                                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                                                    >
-                                                        Assign
-                                                    </button>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                    <Calendar className="w-4 h-4" />
-                                                    {ticket.dueDate}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <button className="p-1.5 text-blue-600 hover:bg-blue-50 rounded">
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteTicket(ticket.id)}
-                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                    <button className="p-1.5 text-gray-600 hover:bg-gray-50 rounded">
-                                                        <MoreVertical className="w-4 h-4" />
-                                                    </button>
-                                                </div>
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <Loader className="w-8 h-8 animate-spin text-blue-500" />
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-gray-50 border-b border-gray-200">
+                                    <tr>
+                                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Ticket #</th>
+                                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Title</th>
+                                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Priority</th>
+                                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Assigned To</th>
+                                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Department</th>
+                                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Due Date</th>
+                                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {filteredTickets.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
+                                                No tickets found
                                             </td>
                                         </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+                                    ) : (
+                                        filteredTickets.map((ticket) => {
+                                            const StatusIcon = statusConfig[ticket.status]?.icon || Clock;
+                                            return (
+                                                <tr key={ticket.id} className="hover:bg-gray-50">
+                                                    <td className="px-6 py-4">
+                                                        <span className="font-semibold text-blue-600">{ticket.ticket_number}</span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div>
+                                                            <p className="font-medium text-gray-900">{ticket.title}</p>
+                                                            <p className="text-sm text-gray-500 mt-1 truncate max-w-xs">{ticket.description}</p>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${statusConfig[ticket.status]?.color || 'bg-gray-100 text-gray-700'}`}>
+                                                            <StatusIcon className="w-3.5 h-3.5" />
+                                                            {statusConfig[ticket.status]?.label || ticket.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${priorityConfig[ticket.priority]?.color || 'bg-gray-100 text-gray-700'}`}>
+                                                            {priorityConfig[ticket.priority]?.label || ticket.priority}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        {ticket.assigned_to ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+                                                                    {getEmployeeName(ticket.assigned_to).split(' ').map(n => n[0]).join('')}
+                                                                </div>
+                                                                <span className="text-sm text-gray-900">{getEmployeeName(ticket.assigned_to)}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedTicket(ticket);
+                                                                    setShowAssignModal(true);
+                                                                }}
+                                                                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                                                            >
+                                                                Assign
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="text-sm text-gray-600">{getDepartmentName(ticket.department_id)}</span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                            <Calendar className="w-4 h-4" />
+                                                            {ticket.due_date || 'N/A'}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                onClick={() => handleEditClick(ticket)}
+                                                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                                                            >
+                                                                <Edit2 className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteTicket(ticket.id)}
+                                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
             </div>
 
+            {/* Create Modal */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4">
-                        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-200 sticky top-0 bg-white">
                             <h2 className="text-xl font-bold text-gray-900">Create New Ticket</h2>
                             <button
                                 onClick={() => setShowCreateModal(false)}
@@ -379,7 +514,7 @@ const TicketManagement = () => {
 
                         <div className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
                                 <input
                                     type="text"
                                     value={formData.title}
@@ -390,7 +525,7 @@ const TicketManagement = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
                                 <textarea
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -418,46 +553,60 @@ const TicketManagement = () => {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
                                     <select
-                                        value={formData.category}
-                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                        value={formData.category_id}
+                                        onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
-                                        <option value="Technical">Technical</option>
-                                        <option value="Bug">Bug</option>
-                                        <option value="Feature Request">Feature Request</option>
-                                        <option value="Support">Support</option>
+                                        <option value="">Select Category</option>
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                                    <input
-                                        type="date"
-                                        value={formData.dueDate}
-                                        onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Assign To</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
                                     <select
-                                        value={formData.assignedToId}
-                                        onChange={(e) => setFormData({ ...formData, assignedToId: e.target.value })}
+                                        value={formData.department_id}
+                                        onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
-                                        <option value="">Unassigned</option>
-                                        {employees.map(emp => (
-                                            <option key={emp.id} value={emp.id}>{emp.name}</option>
+                                        <option value="">Select Department</option>
+                                        {departments.map(dept => (
+                                            <option key={dept.id} value={dept.id}>{dept.name}</option>
                                         ))}
                                     </select>
                                 </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                                    <input
+                                        type="date"
+                                        value={formData.due_date}
+                                        onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Assign To</label>
+                                <select
+                                    value={formData.assigned_to}
+                                    onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Unassigned</option>
+                                    {employees.map(emp => (
+                                        <option key={emp.id} value={emp.id}>{emp.name}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
+                        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 sticky bottom-0 bg-white">
                             <button
                                 onClick={() => setShowCreateModal(false)}
                                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
@@ -466,8 +615,10 @@ const TicketManagement = () => {
                             </button>
                             <button
                                 onClick={handleCreateTicket}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                                disabled={loading}
+                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2"
                             >
+                                {loading && <Loader className="w-4 h-4 animate-spin" />}
                                 Create Ticket
                             </button>
                         </div>
@@ -475,6 +626,166 @@ const TicketManagement = () => {
                 </div>
             )}
 
+            {/* Edit Modal */}
+            {showEditModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-200 sticky top-0 bg-white">
+                            <h2 className="text-xl font-bold text-gray-900">Edit Ticket</h2>
+                            <button
+                                onClick={() => {
+                                    setShowEditModal(false);
+                                    setSelectedTicket(null);
+                                    setFormData({
+                                        title: '',
+                                        description: '',
+                                        priority: 'medium',
+                                        category_id: '',
+                                        department_id: '',
+                                        due_date: '',
+                                        assigned_to: ''
+                                    });
+                                }}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <XCircle className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                                <input
+                                    type="text"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Enter ticket title"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    rows={4}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Describe the issue or request"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                                    <select
+                                        value={formData.priority}
+                                        onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                        <option value="critical">Critical</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                                    <select
+                                        value={formData.category_id}
+                                        onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">Select Category</option>
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                                    <select
+                                        value={formData.department_id}
+                                        onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">Select Department</option>
+                                        {departments.map(dept => (
+                                            <option key={dept.id} value={dept.id}>{dept.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                                    <input
+                                        type="date"
+                                        value={formData.due_date}
+                                        onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Assign To</label>
+                                <select
+                                    value={formData.assigned_to}
+                                    onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Unassigned</option>
+                                    {employees.map(emp => (
+                                        <option key={emp.id} value={emp.id}>{emp.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {selectedTicket && (
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <p className="text-sm text-gray-600">Ticket Number</p>
+                                    <p className="font-semibold text-blue-600">{selectedTicket.ticket_number}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 sticky bottom-0 bg-white">
+                            <button
+                                onClick={() => {
+                                    setShowEditModal(false);
+                                    setSelectedTicket(null);
+                                    setFormData({
+                                        title: '',
+                                        description: '',
+                                        priority: 'medium',
+                                        category_id: '',
+                                        department_id: '',
+                                        due_date: '',
+                                        assigned_to: ''
+                                    });
+                                }}
+                                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleUpdateTicket}
+                                disabled={loading}
+                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {loading && <Loader className="w-4 h-4 animate-spin" />}
+                                Update Ticket
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Assign Modal */}
             {showAssignModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
@@ -487,7 +798,6 @@ const TicketManagement = () => {
                                     setAssignToId('');
                                 }}
                                 className="text-gray-400 hover:text-gray-600">
-
                                 <XCircle className="w-6 h-6" />
                             </button>
                         </div>
@@ -505,7 +815,7 @@ const TicketManagement = () => {
                                     <option value="">Select Employee</option>
                                     {employees.map(emp => (
                                         <option key={emp.id} value={emp.id}>
-                                            {emp.name} ({emp.role})
+                                            {emp.name} {emp.role && `(${emp.role})`}
                                         </option>
                                     ))}
                                 </select>
@@ -514,7 +824,8 @@ const TicketManagement = () => {
                             {selectedTicket && (
                                 <div className="bg-gray-50 p-4 rounded-lg">
                                     <p className="text-sm text-gray-600">Ticket</p>
-                                    <p className="font-medium text-gray-900">{selectedTicket.title}</p>
+                                    <p className="font-semibold text-blue-600">{selectedTicket.ticket_number}</p>
+                                    <p className="font-medium text-gray-900 mt-2">{selectedTicket.title}</p>
                                     <p className="text-sm text-gray-500 mt-1">
                                         {selectedTicket.description}
                                     </p>
@@ -535,8 +846,10 @@ const TicketManagement = () => {
                             </button>
                             <button
                                 onClick={handleAssignTicket}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                                disabled={loading}
+                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2"
                             >
+                                {loading && <Loader className="w-4 h-4 animate-spin" />}
                                 Assign Ticket
                             </button>
                         </div>
@@ -545,6 +858,6 @@ const TicketManagement = () => {
             )}
         </div>
     );
-};
+}
 
-export default TicketManagement;
+export default TicketManagement
