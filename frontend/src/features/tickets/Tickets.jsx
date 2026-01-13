@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { getUsers } from '../../services/user.service';
 import { Search, Download, Plus, Edit2, Trash2, MoreVertical, Clock, CheckCircle, AlertCircle, XCircle, Calendar, User, Filter, Loader } from 'lucide-react';
+import { getDepartments } from '../../services/department.service';
 
 const TicketManagement = () => {
     const [activeFilter, setActiveFilter] = useState('all');
@@ -11,10 +14,7 @@ const TicketManagement = () => {
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // API Base URL - Update this with your actual API endpoint
-    const API_BASE_URL = 'http://localhost:3000/api'; // Change this to your backend URL
-
-    const [employees, setEmployees] = useState([]);     
+    const [employees, setEmployees] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [categories, setCategories] = useState([]);
     const [tickets, setTickets] = useState([]);
@@ -51,193 +51,169 @@ const TicketManagement = () => {
         fetchCategories();
     }, []);
 
-    // API Functions
-    const fetchTickets = async () => {
-        setLoading(true);
-        try {
-            const response = await fetch(`${API_BASE_URL}/tickets`);
-            const data = await response.json();
-            setTickets(data);
-        } catch (error) {
-            console.error('Error fetching tickets:', error);
-            alert('Failed to fetch tickets');
-        } finally {
-            setLoading(false);
-        }
-    };
+    // // API Functions
+    // const fetchTickets = async () => {
+    //     setLoading(true);
+    //     try {
+    //         const response = await fetch(`${API_BASE_URL}/tickets`);
+    //         const data = await response.json();
+    //         setTickets(data);
+    //     } catch (error) {
+    //         console.error('Error fetching tickets:', error);
+    //         toast.error('Failed to fetch tickets');
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     const fetchEmployees = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/employees`);
-            const data = await response.json();
-            setEmployees(data);
+            const response = await getUsers();
+            setEmployees(response.data);
         } catch (error) {
             console.error('Error fetching employees:', error);
+            toast.error('Error fetching Employees.');
         }
     };
 
     const fetchDepartments = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/departments`);
-            const data = await response.json();
-            setDepartments(data);
+            const response = await getDepartments();
+            setDepartments(response.data);
         } catch (error) {
             console.error('Error fetching departments:', error);
         }
     };
 
-    const fetchCategories = async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/categories`);
-            const data = await response.json();
-            setCategories(data);
-        } catch (error) {
-            console.error('Error fetching categories:', error);
-        }
-    };
+    // const fetchCategories = async () => {
+    //     try {
+    //         const response = await fetch(`${API_BASE_URL}/categories`);
+    //         const data = await response.json();
+    //         setCategories(data);
+    //     } catch (error) {
+    //         console.error('Error fetching categories:', error);
+    //     }
+    // };
 
-    const handleCreateTicket = async () => {
-        if (!formData.title || !formData.description) {
-            alert('Please fill in all required fields');
-            return;
-        }
+    // const handleCreateTicket = async () => {
+    //     if (!formData.title || !formData.description) {
+    //         toast.success('Please fill in all required fields');
+    //         return;
+    //     }
 
-        setLoading(true);
-        try {
-            const response = await fetch(`${API_BASE_URL}/tickets`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            });
+    //     setLoading(true);
+    //     try {
+    //         const response = await fetch(`${API_BASE_URL}/tickets`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify(formData)
+    //         });
 
-            if (response.ok) {
-                const newTicket = await response.json();
-                setTickets([newTicket, ...tickets]);
-                setFormData({
-                    title: '',
-                    description: '',
-                    priority: 'medium',
-                    category_id: '',
-                    department_id: '',
-                    due_date: '',
-                    assigned_to: ''
-                });
-                setShowCreateModal(false);
-                alert('Ticket created successfully');
-            } else {
-                throw new Error('Failed to create ticket');
-            }
-        } catch (error) {
-            console.error('Error creating ticket:', error);
-            alert('Failed to create ticket');
-        } finally {
-            setLoading(false);
-        }
-    };
+    //         if (response.ok) {
+    //             const newTicket = await response.json();
+    //             setTickets([newTicket, ...tickets]);
+    //             setFormData({
+    //                 title: '',
+    //                 description: '',
+    //                 priority: 'medium',
+    //                 category_id: '',
+    //                 department_id: '',
+    //                 due_date: '',
+    //                 assigned_to: ''
+    //             });
+    //             setShowCreateModal(false);
+    //             alert('Ticket created successfully');
+    //         } else {
+    //             throw new Error('Failed to create ticket');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error creating ticket:', error);
+    //         alert('Failed to create ticket');
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
-    const handleUpdateTicket = async () => {
-        if (!formData.title || !formData.description) {
-            alert('Please fill in all required fields');
-            return;
-        }
+    // const handleUpdateTicket = async () => {
+    //     if (!formData.title || !formData.description) {
+    //         alert('Please fill in all required fields');
+    //         return;
+    //     }
 
-        setLoading(true);
-        try {
-            const response = await fetch(`${API_BASE_URL}/tickets/${selectedTicket.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            });
+    //     setLoading(true);
+    //     try {
+    //         const response = await fetch(`${API_BASE_URL}/tickets/${selectedTicket.id}`, {
+    //             method: 'PUT',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify(formData)
+    //         });
 
-            if (response.ok) {
-                const updatedTicket = await response.json();
-                setTickets(tickets.map(t => t.id === selectedTicket.id ? updatedTicket : t));
-                setShowEditModal(false);
-                setSelectedTicket(null);
-                setFormData({
-                    title: '',
-                    description: '',
-                    priority: 'medium',
-                    category_id: '',
-                    department_id: '',
-                    due_date: '',
-                    assigned_to: ''
-                });
-                alert('Ticket updated successfully');
-            } else {
-                throw new Error('Failed to update ticket');
-            }
-        } catch (error) {
-            console.error('Error updating ticket:', error);
-            alert('Failed to update ticket');
-        } finally {
-            setLoading(false);
-        }
-    };
+    //         if (response.ok) {
+    //             const updatedTicket = await response.json();
+    //             setTickets(tickets.map(t => t.id === selectedTicket.id ? updatedTicket : t));
+    //             setShowEditModal(false);
+    //             setSelectedTicket(null);
+    //             setFormData({
+    //                 title: '',
+    //                 description: '',
+    //                 priority: 'medium',
+    //                 category_id: '',
+    //                 department_id: '',
+    //                 due_date: '',
+    //                 assigned_to: ''
+    //             });
+    //             alert('Ticket updated successfully');
+    //         } else {
+    //             throw new Error('Failed to update ticket');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error updating ticket:', error);
+    //         alert('Failed to update ticket');
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
-    const handleAssignTicket = async () => {
-        if (!selectedTicket || !assignToId) {
-            alert('Please select an employee');
-            return;
-        }
+    // const handleAssignTicket = async () => {
+    //     if (!selectedTicket || !assignToId) {
+    //         alert('Please select an employee');
+    //         return;
+    //     }
 
-        setLoading(true);
-        try {
-            const response = await fetch(`${API_BASE_URL}/tickets/${selectedTicket.id}/assign`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    assigned_to: assignToId,
-                    status: 'in-progress'
-                })
-            });
+    //     setLoading(true);
+    //     try {
+    //         const response = await fetch(`${API_BASE_URL}/tickets/${selectedTicket.id}/assign`, {
+    //             method: 'PATCH',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify({
+    //                 assigned_to: assignToId,
+    //                 status: 'in-progress'
+    //             })
+    //         });
 
-            if (response.ok) {
-                const updatedTicket = await response.json();
-                setTickets(tickets.map(t => t.id === selectedTicket.id ? updatedTicket : t));
-                setShowAssignModal(false);
-                setSelectedTicket(null);
-                setAssignToId('');
-                alert('Ticket assigned successfully');
-            } else {
-                throw new Error('Failed to assign ticket');
-            }
-        } catch (error) {
-            console.error('Error assigning ticket:', error);
-            alert('Failed to assign ticket');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleDeleteTicket = async (ticketId) => {
-        if (!confirm('Are you sure you want to delete this ticket?')) return;
-
-        setLoading(true);
-        try {
-            const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}`, {
-                method: 'DELETE'
-            });
-
-            if (response.ok) {
-                setTickets(tickets.filter(t => t.id !== ticketId));
-                alert('Ticket deleted successfully');
-            } else {
-                throw new Error('Failed to delete ticket');
-            }
-        } catch (error) {
-            console.error('Error deleting ticket:', error);
-            alert('Failed to delete ticket');
-        } finally {
-            setLoading(false);
-        }
-    };
+    //         if (response.ok) {
+    //             const updatedTicket = await response.json();
+    //             setTickets(tickets.map(t => t.id === selectedTicket.id ? updatedTicket : t));
+    //             setShowAssignModal(false);
+    //             setSelectedTicket(null);
+    //             setAssignToId('');
+    //             alert('Ticket assigned successfully');
+    //         } else {
+    //             throw new Error('Failed to assign ticket');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error assigning ticket:', error);
+    //         alert('Failed to assign ticket');
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     const handleEditClick = (ticket) => {
         setSelectedTicket(ticket);

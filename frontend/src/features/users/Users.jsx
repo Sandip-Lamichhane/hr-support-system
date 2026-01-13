@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getUsers } from '../../services/api';
+import { getUsers } from '../../services/user.service';
 import {
     Search, Plus, Download, Edit, Trash2, MoreVertical,
     Mail, Phone, Check, X, Calendar, Users, Eye, EyeOff
