@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { getUsers } from '../../services/user.service';
+import { getUsers, CreateUsers, UpdatUsers } from '../../services/user.service';
 import {
     Search, Plus, Download, Edit, Trash2, MoreVertical,
     Mail, Phone, Check, X, Calendar, Users, Eye, EyeOff
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getDepartments } from '../../services/department.service';
-import { CreateUsers, UpdatUsers } from '../../services/user.service';
+
+const emptyForm = {
+    name: '',
+    email: '',
+    password: '',
+    department_id: '',
+    role: 'User',
+    status: 'Active',
+};
 
 const UserManagement = () => {
     // STATE
@@ -22,17 +30,9 @@ const UserManagement = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [editingUserId, setEditingUserId] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+    const [formData, setFormData] = useState({ ...emptyForm });
 
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: '',
-        department_id: '',
-        role: 'User',
-        status: 'Active',
-    });
-
-    // Fetch users on component mount
+    // Fetch users
     useEffect(() => {
         fetchUsers();
     }, []);
@@ -44,31 +44,30 @@ const UserManagement = () => {
             const data = await getUsers();
             setUsers(data);
         } catch (err) {
-            const errorMessage = err.message || 'Failed to fetch users';
-            setError(errorMessage);
-            toast.error(errorMessage);
+            const msg = err.message || 'Failed to fetch users';
+            setError(msg);
+            toast.error(msg);
         } finally {
             setLoading(false);
         }
     };
 
-    //fetch departments
+    // Fetch departments
     useEffect(() => {
         fetchDepartments();
     }, []);
 
     const fetchDepartments = async () => {
         try {
-            const res = await getDepartments();
-            setDepartments(res.data);
+            const { data } = await getDepartments();
+            setDepartments(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error(error);
         }
     };
 
-    //Create Users
+    // Create user
     const handleAddUser = async () => {
-
         const requiredFields = ['name', 'email', 'password', 'department_id', 'role', 'status'];
         for (let field of requiredFields) {
             if (!formData[field]) {
@@ -78,32 +77,33 @@ const UserManagement = () => {
         }
 
         setSubmitting(true);
-
         try {
             await CreateUsers({ ...formData, department_id: Number(formData.department_id) });
             toast.success('User created successfully!');
             setShowModal(false);
+            setFormData({ ...emptyForm });
             fetchUsers();
-            setFormData({ name: '', email: '', password: '', department_id: '', role: 'User', status: 'Active' });
         } catch (error) {
-            const messages = error.response?.data?.errors
+            const msg = error.response?.data?.errors
                 ? Object.values(error.response.data.errors).flat().join(' | ')
                 : error.response?.data?.message || 'Failed to create User!';
-            toast.error(messages);
+            toast.error(msg);
         } finally {
             setSubmitting(false);
         }
     };
 
+    // Edit user
     const handleEditUser = (user) => {
         setIsEditMode(true);
         setEditingUserId(user.id);
         setShowPassword(false);
 
         setFormData({
+            ...emptyForm,
             name: user.name,
             email: user.email,
-            department_id: user.department_id,
+            department_id: String(user.department_id),
             role: user.role,
             status: user.status,
         });
@@ -111,6 +111,7 @@ const UserManagement = () => {
         setShowModal(true);
     };
 
+    // Update user
     const handleUpdateUser = async () => {
         setSubmitting(true);
         try {
@@ -123,7 +124,7 @@ const UserManagement = () => {
 
             toast.success('User updated successfully!');
             setShowModal(false);
-            setFormData(true);
+            setFormData({ ...emptyForm });
             setIsEditMode(false);
             setEditingUserId(null);
             fetchUsers();
@@ -135,9 +136,7 @@ const UserManagement = () => {
         }
     };
 
-    /* =======================
-       HELPERS
-    ======================= */
+    // Helpers
     const filteredUsers = users.filter(user => {
         const matchesSearch =
             user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -186,7 +185,6 @@ const UserManagement = () => {
         }
     };
 
-    // Loading state
     if (loading) {
         return (
             <div className="p-8 bg-gray-50 min-h-screen flex items-center justify-center">
@@ -198,24 +196,11 @@ const UserManagement = () => {
         );
     }
 
-    // Error state
     if (error) {
         return (
             <div className="p-8 bg-gray-50 min-h-screen">
                 <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-2xl mx-auto">
-                    <div className="flex items-start gap-3">
-                        <X className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
-                        <div>
-                            <h3 className="text-lg font-semibold text-red-800 mb-2">Error Loading Users</h3>
-                            <p className="text-red-600 mb-4">{error}</p>
-                            <button
-                                onClick={fetchUsers}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                            >
-                                Try Again
-                            </button>
-                        </div>
-                    </div>
+                    <button onClick={fetchUsers}>Try Again</button>
                 </div>
             </div>
         );
@@ -468,7 +453,7 @@ const UserManagement = () => {
                             </h2>
                             <button onClick={() => {
                                 setShowModal(false)
-                                setFormData(true)
+                                setFormData(emptyForm)
                             }} className="text-gray-400 hover:text-gray-600">
                                 <X className="w-5 h-5" />
                             </button>
@@ -542,7 +527,7 @@ const UserManagement = () => {
                                     onChange={handleInputChange}
                                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent"
                                 >
-                                    <option value="" >Select Department</option>
+                                    <option value="" disabled>Select Department</option>
                                     {departments.map(dept => (
                                         <option key={dept.id} value={dept.id}>{dept.name}</option>
                                     ))}
@@ -583,7 +568,7 @@ const UserManagement = () => {
                                 <button
                                     onClick={() => {
                                         setShowModal(false);
-                                        setFormData(false);
+                                        setFormData(emptyForm);
                                         setIsEditMode(false);
                                         setEditingUserId(null);
                                         setShowPassword(false);
