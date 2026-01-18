@@ -5,8 +5,8 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import AdminLayout from "../layouts/admin/AdminLayout";
 import AdminDashboard from "../features/dashboard/AdminDashboard";
-import UserManagement from "../features/users/Users";
-import Tickets from "../features/tickets/Tickets";
+import UserManagement from "../features/users/pages/UserManagement";
+import Tickets from "../features/tickets/pages/Tickets";
 import ProtectedRoute from "./ProtectedRoute";
 import Department from "../features/settings/Department";
 
