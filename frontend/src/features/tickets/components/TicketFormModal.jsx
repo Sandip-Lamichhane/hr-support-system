@@ -1,6 +1,7 @@
 import React from 'react';
 import FormField from './shared/FormField';
 import SelectField from './shared/SelectField';
+import FileUploadField from './shared/FileUploadField';
 import ModalHeader from './shared/ModalHeader';
 import ModalFooter from './shared/ModalFooter';
 
@@ -87,6 +88,12 @@ const TicketFormModal = ({
                         options={[{ value: '', label: 'Unassigned' }, ...employees]}
                         optionKey="id"
                         optionLabel="name"
+                    />
+
+                    <FileUploadField
+                        label="Attachments"
+                        files={formData.files || []}
+                        onChange={(files) => setFormData({ ...formData, files })}
                     />
 
                     {selectedTicket && (

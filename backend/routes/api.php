@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Settings\DepartmentController;
 use App\Http\Controllers\User\UserController;
 use Illuminate\Container\Attributes\Auth;

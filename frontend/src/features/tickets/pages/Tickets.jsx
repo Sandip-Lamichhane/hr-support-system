@@ -1,3 +1,4 @@
+// src/features/tickets/pages/TicketManagement.jsx
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTickets } from '../hooks/useTickets';
@@ -42,6 +43,7 @@ const TicketManagement = () => {
         department_id: '',
         due_date: '',
         assigned_to: '',
+        files: [],
     });
     const [assignToId, setAssignToId] = useState('');
 
@@ -59,6 +61,7 @@ const TicketManagement = () => {
             department_id: '',
             due_date: '',
             assigned_to: '',
+            files: [],
         });
         setSelectedTicket(null);
         setAssignToId('');
@@ -99,6 +102,7 @@ const TicketManagement = () => {
             department_id: ticket.department_id,
             due_date: ticket.due_date,
             assigned_to: ticket.assigned_to || '',
+            files: [],
         });
         toggleModal('edit', true);
     };
@@ -110,7 +114,24 @@ const TicketManagement = () => {
 
     const handleCreateSubmit = async () => {
         try {
-            await createTicket(formData);
+            // Create FormData for file upload
+            const submitData = new FormData();
+            submitData.append('title', formData.title);
+            submitData.append('description', formData.description);
+            submitData.append('priority', formData.priority);
+            submitData.append('category_id', formData.category_id);
+            submitData.append('department_id', formData.department_id);
+            submitData.append('due_date', formData.due_date);
+            submitData.append('assigned_to', formData.assigned_to);
+
+            // Append files
+            if (formData.files && formData.files.length > 0) {
+                formData.files.forEach((file) => {
+                    submitData.append('files', file);
+                });
+            }
+
+            await createTicket(submitData);
             toast.success('Ticket created successfully!');
             handleModalClose('create');
             fetchTickets();
@@ -121,7 +142,24 @@ const TicketManagement = () => {
 
     const handleUpdateSubmit = async () => {
         try {
-            await updateTicket(selectedTicket.id, formData);
+            // Create FormData for file upload
+            const submitData = new FormData();
+            submitData.append('title', formData.title);
+            submitData.append('description', formData.description);
+            submitData.append('priority', formData.priority);
+            submitData.append('category_id', formData.category_id);
+            submitData.append('department_id', formData.department_id);
+            submitData.append('due_date', formData.due_date);
+            submitData.append('assigned_to', formData.assigned_to);
+
+            // Append new files
+            if (formData.files && formData.files.length > 0) {
+                formData.files.forEach((file) => {
+                    submitData.append('files', file);
+                });
+            }
+
+            await updateTicket(selectedTicket.id, submitData);
             toast.success('Ticket updated successfully!');
             handleModalClose('edit');
             fetchTickets();

@@ -20,4 +20,5 @@ export const initialFormData = {
     department_id: '',
     due_date: '',
     assigned_to: '',
+    files: [],
 };
