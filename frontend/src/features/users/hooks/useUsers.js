@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getUsers, CreateUsers, UpdatUsers } from '../services/user.service';
-import { getDepartments } from '../../../services/department.service';
+import { getDepartments } from '../../settings/services/department.service';
 import toast from 'react-hot-toast';
 import { EMPTY_FORM } from '../constants/UserForm';
 
