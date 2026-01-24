@@ -71,6 +71,7 @@ const TicketFormModal = ({
                             options={[{ value: '', label: 'Select Department' }, ...departments]}
                             optionKey="id"
                             optionLabel="name"
+                            disableEmptyOption
                         />
 
                         <FormField
@@ -88,6 +89,7 @@ const TicketFormModal = ({
                         options={[{ value: '', label: 'Unassigned' }, ...employees]}
                         optionKey="id"
                         optionLabel="name"
+                        disableEmptyOption
                     />
 
                     <FileUploadField

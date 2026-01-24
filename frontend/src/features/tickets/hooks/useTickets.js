@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { getUsers } from '../../users/services/user.service';
 import {
-    getTickets,
     createTicket as createTicketAPI,
     updateTicket as updateTicketAPI,
     deleteTicket as deleteTicketAPI,
@@ -11,6 +9,8 @@ import {
 import {
     getCategories,
     getDepartments,
+    getEmployees,
+    getTickets,
 } from '../services/ticket.service';
 
 export const useTickets = () => {
@@ -54,7 +54,7 @@ export const useTickets = () => {
 
     const fetchEmployees = async () => {
         try {
-            const { data } = await getUsers();
+            const data = await getEmployees();
             setEmployees(Array.isArray(data) ? data : []);
         } catch (error) {
             toast.error('Error fetching employees!');
@@ -64,11 +64,10 @@ export const useTickets = () => {
 
     const fetchDepartments = async () => {
         try {
-            const { data } = await getDepartments();
+            const {data} = await getDepartments();
             setDepartments(Array.isArray(data) ? data : []);
         } catch (error) {
             toast.error('Error fetching departments!');
-            console.error(error);
         }
     };
 

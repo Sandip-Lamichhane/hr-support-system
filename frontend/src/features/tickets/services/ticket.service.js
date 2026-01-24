@@ -77,3 +77,14 @@ export const getDepartments = async () => {
         throw error;
     }
 };
+
+//Fetch all Employees
+export const getEmployees = async () => {
+    try {
+        const response = await api.get('/users');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+    }
+};
