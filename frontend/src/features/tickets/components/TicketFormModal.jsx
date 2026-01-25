@@ -58,8 +58,9 @@ const TicketFormModal = ({
                             value={formData.category_id}
                             onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
                             options={[{ value: '', label: 'Select Category' }, ...categories]}
-                            optionKey="id"
+                            optionKey="category_id"
                             optionLabel="name"
+                            disableEmptyOption
                         />
                     </div>
 

@@ -59,7 +59,7 @@ export const assignTicket = async (ticketId, employeeId) => {
 // Fetch all categories
 export const getCategories = async () => {
     try {
-        const response = await api.get('/categories');
+        const response = await api.get('/category');
         return response.data;
     } catch (error) {
         console.error('Error fetching categories:', error);

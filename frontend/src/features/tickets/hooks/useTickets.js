@@ -68,6 +68,7 @@ export const useTickets = () => {
             setDepartments(Array.isArray(data) ? data : []);
         } catch (error) {
             toast.error('Error fetching departments!');
+            console.error(error);
         }
     };
 
