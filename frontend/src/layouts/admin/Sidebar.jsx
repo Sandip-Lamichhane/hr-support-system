@@ -6,6 +6,7 @@ import {
     Ticket,
     Building2,
     ChevronDown,
+    ChartBarStacked
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { logout } from "../../services/auth";
@@ -29,6 +30,11 @@ const Sidebar = ({ sidebarOpen }) => {
                     path: "/admin/settings/department",
                     icon: Building2,
                     label: "Department",
+                },
+                {
+                    path: "/admin/settings/category",
+                    icon: ChartBarStacked,
+                    label: "Category",
                 },
             ],
         },
@@ -100,8 +106,8 @@ const Sidebar = ({ sidebarOpen }) => {
                                         )
                                     }
                                     className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all ${activeParent
-                                            ? "bg-gradient-to-r from-sky-400 to-blue-500 text-white shadow-md"
-                                            : "text-gray-600 hover:bg-sky-50 hover:text-sky-600"
+                                        ? "bg-gradient-to-r from-sky-400 to-blue-500 text-white shadow-md"
+                                        : "text-gray-600 hover:bg-sky-50 hover:text-sky-600"
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
@@ -116,8 +122,8 @@ const Sidebar = ({ sidebarOpen }) => {
                                     {sidebarOpen && (
                                         <ChevronDown
                                             className={`w-4 h-4 transition-transform ${openMenu === item.label
-                                                    ? "rotate-180"
-                                                    : ""
+                                                ? "rotate-180"
+                                                : ""
                                                 }`}
                                         />
                                     )}
@@ -140,7 +146,7 @@ const Sidebar = ({ sidebarOpen }) => {
                                                         }`
                                                     }
                                                 >
-                                                    <ChildIcon className="w-4 h-4" />
+                                                    {ChildIcon && <ChildIcon className="w-4 h-4" />}
                                                     {child.label}
                                                 </NavLink>
                                             );

@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Settings\CategoryController;
 use App\Http\Controllers\Settings\DepartmentController;
 use App\Http\Controllers\User\UserController;
+use App\Models\category;
 use Illuminate\Container\Attributes\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -20,4 +22,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/departments', [DepartmentController::class, 'GetDepartment'])->name('getDepartments');
     Route::post('/departments', [DepartmentController::class, 'StoreDepartment'])->name('storeDepartments');
+
+    Route::get('/category', [CategoryController::class, 'GetCategory'])->name('getCategories');
+    Route::post('/category', [CategoryController::class, 'StoreCategory'])->name('StoreCategory');
+    Route::put('/category/{id}', [CategoryController::class, 'UpdateCategory'])->name('updateCategory');
+    Route::patch('/category/{id}/status', [CategoryController::class, 'UpdateCategoryStatus'])->name('UpdateCategoryStatus');
 });

@@ -3,7 +3,7 @@ import {
     Search, Plus, Download, Edit, Trash2, X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { createDepartments, getDepartments } from '../../services/department.service';
+import { createDepartments, getDepartments } from '../settings/services/department.service'
 
 const Department = () => {
     const [departments, setDepartments] = useState([]);
@@ -41,7 +41,7 @@ const Department = () => {
 
     // Create a new department
     const storeDepartments = async () => {
-        if (!formData.name.trim() || !formData.description.trim()) {
+        if (!formData.name.trim()) {
             return toast.error("Please fill in all fields");
         }
 
