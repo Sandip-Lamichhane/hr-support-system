@@ -41,7 +41,7 @@ const Department = () => {
 
     // Create a new department
     const storeDepartments = async () => {
-        if (!formData.name.trim() || !formData.description.trim()) {
+        if (!formData.name.trim()) {
             return toast.error("Please fill in all fields");
         }
 
