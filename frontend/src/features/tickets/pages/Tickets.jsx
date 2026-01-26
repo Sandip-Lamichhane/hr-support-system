@@ -114,31 +114,41 @@ const TicketManagement = () => {
 
     const handleCreateSubmit = async () => {
         try {
-            // Create FormData for file upload
             const submitData = new FormData();
+
             submitData.append('title', formData.title);
             submitData.append('description', formData.description);
             submitData.append('priority', formData.priority);
             submitData.append('category_id', formData.category_id);
             submitData.append('department_id', formData.department_id);
-            submitData.append('due_date', formData.due_date);
-            submitData.append('assigned_to', formData.assigned_to);
 
-            // Append files
-            if (formData.files && formData.files.length > 0) {
+            if (formData.due_date) {
+                submitData.append('due_date', formData.due_date);
+            }
+
+            if (formData.assigned_to) {
+                submitData.append('assigned_to', formData.assigned_to);
+            }
+
+            if (formData.files?.length > 0) {
                 formData.files.forEach((file) => {
-                    submitData.append('files', file);
+                    submitData.append('attachments[]', file); // ✅ must be attachments[]
                 });
             }
+
 
             await createTicket(submitData);
             toast.success('Ticket created successfully!');
             handleModalClose('create');
             fetchTickets();
         } catch (error) {
-            toast.error('Error creating ticket!');
+            console.error(error);
+            toast.error(
+                error.response?.data?.message || 'Error creating ticket!'
+            );
         }
     };
+
 
     const handleUpdateSubmit = async () => {
         try {

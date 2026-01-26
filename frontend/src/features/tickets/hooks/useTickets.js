@@ -64,7 +64,7 @@ export const useTickets = () => {
 
     const fetchDepartments = async () => {
         try {
-            const {data} = await getDepartments();
+            const { data } = await getDepartments();
             setDepartments(Array.isArray(data) ? data : []);
         } catch (error) {
             toast.error('Error fetching departments!');
@@ -85,11 +85,16 @@ export const useTickets = () => {
     const createTicket = async (ticketData) => {
         setLoading(true);
         try {
-            await createTicketAPI(ticketData);
+            const response = await createTicketAPI(ticketData);
+            return response;
+        } catch (error) {
+            console.error('Create ticket error:', error);
+            throw error; // VERY important
         } finally {
             setLoading(false);
         }
     };
+
 
     const updateTicket = async (id, ticketData) => {
         setLoading(true);
