@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Settings\CategoryController;
 use App\Http\Controllers\Settings\DepartmentController;
+use App\Http\Controllers\Ticket\TicketController;
 use App\Http\Controllers\User\UserController;
 use App\Models\category;
 use Illuminate\Container\Attributes\Auth;
@@ -27,4 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/category', [CategoryController::class, 'StoreCategory'])->name('StoreCategory');
     Route::put('/category/{id}', [CategoryController::class, 'UpdateCategory'])->name('updateCategory');
     Route::patch('/category/{id}/status', [CategoryController::class, 'UpdateCategoryStatus'])->name('UpdateCategoryStatus');
+
+    Route::get('/tickets', [TicketController::class, 'GetTickets']);
+    Route::post('/tickets', [TicketController::class, 'StoreTicket']);
 });

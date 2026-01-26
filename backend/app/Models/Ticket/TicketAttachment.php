@@ -1,24 +1,24 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Ticket;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class category extends Model
+class TicketAttachment extends Model
 {
     use HasFactory, HasApiTokens, Notifiable;
 
     protected $fillable = [
-        'name',
-        'description',
-        'status',
+        'ticket_id',
+        'file_path',
+        'file_type',
     ];
 
-    public function users()
+    public function ticket()
     {
-        return $this->hasMany(User::class);
+        return $this->belongsTo(Ticket::class);
     }
 }
