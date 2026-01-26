@@ -24,13 +24,10 @@ export const getTicketById = async (id) => {
 
 // Create new ticket
 export const createTicket = async (data) => {
-    const response = await api.post('/tickets', data, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
-    });
+    const response = await api.post('/tickets', data);
     return response.data;
 };
+
 
 // Update ticket
 export const updateTicket = async (id, data) => {

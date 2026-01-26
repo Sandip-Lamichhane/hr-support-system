@@ -58,7 +58,7 @@ const TicketFormModal = ({
                             value={formData.category_id}
                             onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
                             options={[{ value: '', label: 'Select Category' }, ...categories]}
-                            optionKey="category_id"
+                            optionKey="id"
                             optionLabel="name"
                             disableEmptyOption
                         />
@@ -90,7 +90,6 @@ const TicketFormModal = ({
                         options={[{ value: '', label: 'Unassigned' }, ...employees]}
                         optionKey="id"
                         optionLabel="name"
-                        disableEmptyOption
                     />
 
                     <FileUploadField

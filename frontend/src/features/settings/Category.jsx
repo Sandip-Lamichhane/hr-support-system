@@ -92,7 +92,7 @@ export default function CategoryManagement() {
     };
 
     const handleOpenEdit = (category) => {
-        setEditingId(category.category_id);
+        setEditingId(category.id);
         setFormData({
             name: category.name,
             description: category.description
@@ -111,7 +111,7 @@ export default function CategoryManagement() {
             // update UI instantly
             setCategories((prev) =>
                 prev.map((cat) =>
-                    cat.category_id === id ? { ...cat, status: newStatus } : cat
+                    cat.id === id ? { ...cat, status: newStatus } : cat
                 )
             );
 
@@ -182,7 +182,7 @@ export default function CategoryManagement() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
                         {categories.map((category) => (
                             <div
-                                key={category.category_id}
+                                key={category.id}
                                 className="bg-white rounded-lg border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all overflow-hidden"
                             >
                                 <div className="p-6">
@@ -226,7 +226,7 @@ export default function CategoryManagement() {
                                             Edit
                                         </button>
                                         <button
-                                            onClick={() => toggleStatus(category.category_id, category.status)}
+                                            onClick={() => toggleStatus(category.id, category.status)}
                                             className={`flex-1 px-3 py-2 rounded-lg transition-colors text-sm font-medium ${category.status === 'Active'
                                                 ? 'bg-red-600 text-white hover:bg-red-700'
                                                 : 'bg-green-600 text-white hover:bg-green-700'
