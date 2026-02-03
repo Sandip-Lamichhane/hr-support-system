@@ -26,7 +26,7 @@ export default function Login() {
                 ).flat();
                 setErrors(backendErrors);
             }else
-                setErrors(["Login Failed!"]);
+                setErrors([error]);
         }
     };
 

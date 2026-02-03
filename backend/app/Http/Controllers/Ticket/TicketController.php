@@ -15,7 +15,7 @@ class TicketController extends Controller
     public function GetTickets(Request $request)
     {
         $query = Ticket::with([
-            'category:id,name',
+            'category:id,name', 
             'department:id,name',
             'assignee:id,name',
             'creator:id,name',
