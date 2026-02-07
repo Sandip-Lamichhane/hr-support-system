@@ -9,12 +9,13 @@ import {
     ChartBarStacked
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { logout } from "../../services/auth";
 import { useState } from "react";
+import { useAuth } from "../../utils/context/auth";
 
 const Sidebar = ({ sidebarOpen }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const {logout} = useAuth();
 
     const [openMenu, setOpenMenu] = useState(null);
 

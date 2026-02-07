@@ -178,7 +178,7 @@ const UserManagement = () => {
                         </button>
                         <button
                             onClick={openCreateModal}
-                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all"
+                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all cursor-pointer"
                         >
                             <Plus className="w-4 h-4" />
                             <span>Add User</span>

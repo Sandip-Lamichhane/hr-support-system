@@ -30,7 +30,7 @@ export default function AppRoutes() {
                     <Route path="tickets" element={<Tickets />} />
                     <Route path="users" element={<UserManagement />} />
                     <Route path="settings/department" element={<Department />} />
-                    <Route path="settings/category" element={<Category />} /> 
+                    <Route path="settings/category" element={<Category />} />
                 </Route>
             </Route>
         </Routes>
