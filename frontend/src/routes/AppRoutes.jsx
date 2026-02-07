@@ -10,6 +10,7 @@ import Tickets from "../features/tickets/pages/Tickets";
 import ProtectedRoute from "./ProtectedRoute";
 import Department from "../features/settings/Department";
 import Category from "../features/settings/Category";
+import PublicRoute from "./PublicRoute";
 
 export default function AppRoutes() {
     return (
@@ -20,8 +21,10 @@ export default function AppRoutes() {
             </Route>
 
             {/* Auth */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route element={<PublicRoute/>}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+            </Route>
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
