@@ -11,6 +11,8 @@ import ProtectedRoute from "./ProtectedRoute";
 import Department from "../features/settings/Department";
 import Category from "../features/settings/Category";
 import PublicRoute from "./PublicRoute";
+import EmployeeLayout from "../layouts/employee/EmployeeLayout";
+import EmployeeDashboard from "../features/dashboard/EmployeeDashboard";
 
 export default function AppRoutes() {
     return (
@@ -21,13 +23,13 @@ export default function AppRoutes() {
             </Route>
 
             {/* Auth */}
-            <Route element={<PublicRoute/>}>
+            <Route element={<PublicRoute />}>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
             </Route>
 
-            {/* Protected Routes */}
-            <Route element={<ProtectedRoute />}>
+            {/* Protected Admin Routes */}
+            <Route element={<ProtectedRoute allowedRoles={["admin", "administrator"]} />}>
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="tickets" element={<Tickets />} />
@@ -36,6 +38,15 @@ export default function AppRoutes() {
                     <Route path="settings/category" element={<Category />} />
                 </Route>
             </Route>
+
+            {/* Protected Employee Routes */}
+            <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
+                <Route path="/employee" element={<EmployeeLayout />}>
+                    <Route path="dashboard" element={<EmployeeDashboard />} />
+
+                </Route>
+            </Route>
+
         </Routes>
     );
 }

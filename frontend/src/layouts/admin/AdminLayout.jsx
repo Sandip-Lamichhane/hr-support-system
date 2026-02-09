@@ -16,9 +16,8 @@ const AdminLayout = () => {
       <Sidebar sidebarOpen={sidebarOpen} />
 
       <div
-        className={`pt-16 transition-all duration-300 ${
-          sidebarOpen ? "ml-64" : "ml-20"
-        }`}
+        className={`pt-16 transition-all duration-300 ${sidebarOpen ? "ml-64" : "ml-20"
+          }`}
       >
         <Outlet />
       </div>

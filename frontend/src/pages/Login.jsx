@@ -14,7 +14,7 @@ const LoginSchema = Yup.object({
 });
 
 export default function Login() {
-    const {loginUser, isLoading } = useAuth();  
+    const { loginUser, isLoading } = useAuth();
     const navigate = useNavigate();
 
     return (
@@ -40,8 +40,22 @@ export default function Login() {
                         validationSchema={LoginSchema}
                         onSubmit={async (values, { setErrors }) => {
                             try {
-                                await loginUser(values);
-                                navigate("/admin/dashboard");
+                                const loggedInUser = await loginUser(values);
+
+                                // Debug: log returned user shape and role
+                                // (remove these logs after debugging)
+                                console.log('loggedInUser', loggedInUser);
+
+                                // Normalize role checks to be case-insensitive
+                                const role = (loggedInUser?.role || "").toString().toLowerCase();
+
+                                console.log('resolved role:', role);
+
+                                if (role === "admin" || role === "administrator") {
+                                    navigate("/admin/dashboard");
+                                } else {
+                                    navigate('/employee/dashboard');
+                                }
                             } catch (error) {
                                 // Handle backend validation errors
                                 if (error.data?.errors) {
@@ -49,7 +63,7 @@ export default function Login() {
                                     Object.keys(error.data.errors).forEach((key) => {
                                         backendErrors[key] = error.data.errors[key][0];
                                     });
-                                    setErrors(backendErrors);
+                                    setErrors('Internal server error');
                                 } else {
                                     setErrors({
                                         password: error.data?.message || "Invalid email or password",

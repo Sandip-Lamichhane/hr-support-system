@@ -82,10 +82,10 @@ export const useTickets = () => {
         }
     };
 
-    const createTicket = async (ticketData) => {
+    const createTicket = async (formData) => {
         setLoading(true);
         try {
-            const response = await createTicketAPI(ticketData);
+            const response = await createTicketAPI(formData);
             return response;
         } catch (error) {
             console.error('Create ticket error:', error);

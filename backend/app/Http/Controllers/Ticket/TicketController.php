@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Ticket;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ticket\Ticket;
-use App\Models\Ticket\Ticket as ModelsTicket;
 use App\Models\Ticket\TicketAttachment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -15,7 +14,7 @@ class TicketController extends Controller
     public function GetTickets(Request $request)
     {
         $query = Ticket::with([
-            'category:id,name', 
+            'category:id,name',
             'department:id,name',
             'assignee:id,name',
             'creator:id,name',
@@ -71,13 +70,11 @@ class TicketController extends Controller
             'department_id' => 'required|exists:departments,id',
             'due_date' => 'nullable|date',
             'assigned_to' => 'nullable|exists:users,id',
-
             'attachments' => 'nullable|array',
-            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        DB::transaction(function () use ($validated, $request) {
-
+        $ticket = DB::transaction(function () use ($validated, $request) {
             $ticket = Ticket::create([
                 'ticket_number' => 'TCK-' . now()->format('YmdHis'),
                 'title' => $validated['title'],
@@ -87,11 +84,12 @@ class TicketController extends Controller
                 'department_id' => $validated['department_id'],
                 'due_date' => $validated['due_date'] ?? null,
                 'assigned_to' => $validated['assigned_to'] ?? null,
-                'created_by' => auth()->id,
+                'created_by' => $request->user()->id,
             ]);
 
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
+                    // Stores in storage/app/public/tickets
                     $path = $file->store('tickets', 'public');
 
                     TicketAttachment::create([
@@ -101,10 +99,13 @@ class TicketController extends Controller
                     ]);
                 }
             }
+
+            return $ticket;
         });
 
         return response()->json([
-            'message' => 'Ticket created successfully'
+            'message' => 'Ticket created successfully',
+            'ticket' => $ticket // Good to return the object for UI updates
         ], 201);
     }
 }
