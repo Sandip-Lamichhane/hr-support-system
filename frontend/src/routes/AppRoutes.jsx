@@ -6,13 +6,14 @@ import Register from "../pages/Register";
 import AdminLayout from "../layouts/admin/AdminLayout";
 import AdminDashboard from "../features/dashboard/AdminDashboard";
 import UserManagement from "../features/users/pages/UserManagement";
-import Tickets from "../features/tickets/pages/Tickets";
+import TicketManagement from "../features/tickets/pages/AdminTickets";
 import ProtectedRoute from "./ProtectedRoute";
 import Department from "../features/settings/Department";
 import Category from "../features/settings/Category";
 import PublicRoute from "./PublicRoute";
 import EmployeeLayout from "../layouts/employee/EmployeeLayout";
 import EmployeeDashboard from "../features/dashboard/EmployeeDashboard";
+import EmployeeTickets from "../features/tickets/pages/EmployeeTickets";
 
 export default function AppRoutes() {
     return (
@@ -32,7 +33,7 @@ export default function AppRoutes() {
             <Route element={<ProtectedRoute allowedRoles={["admin", "administrator"]} />}>
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="tickets" element={<Tickets />} />
+                    <Route path="tickets" element={<TicketManagement />} />
                     <Route path="users" element={<UserManagement />} />
                     <Route path="settings/department" element={<Department />} />
                     <Route path="settings/category" element={<Category />} />
@@ -43,7 +44,7 @@ export default function AppRoutes() {
             <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
                 <Route path="/employee" element={<EmployeeLayout />}>
                     <Route path="dashboard" element={<EmployeeDashboard />} />
-
+                    <Route path="tickets" element={<EmployeeTickets />} />
                 </Route>
             </Route>
 

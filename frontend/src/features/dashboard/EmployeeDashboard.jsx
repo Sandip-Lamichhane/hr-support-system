@@ -2,12 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, FileText, User, Bell, LogOut, ChevronRight, Zap } from 'lucide-react';
 
 export default function EmployeeDashboard() {
-    const [currentTime, setCurrentTime] = useState(new Date());
 
-    useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        return () => clearInterval(timer);
-    }, []);
+
 
     // Mock data
     const employee = {
@@ -56,42 +52,9 @@ export default function EmployeeDashboard() {
         { label: 'Pending Requests', value: leaveBalance.pending, icon: FileText, color: 'from-purple-500 to-purple-600' }
     ];
 
-    const formatTime = (date) => {
-        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-    };
-
-    const formatDate = (date) => {
-        return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
-            {/* Header */}
-            <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/50">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">HR</span>
-                        </div>
-                        <h1 className="text-xl font-semibold text-slate-900">Employee Portal</h1>
-                    </div>
-
-                    <div className="flex items-center gap-6">
-                        <div className="hidden sm:block text-right text-sm">
-                            <p className="text-slate-500">{formatDate(currentTime)}</p>
-                            <p className="text-lg font-semibold text-slate-900">{formatTime(currentTime)}</p>
-                        </div>
-                        <button className="relative p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                            <Bell size={20} className="text-slate-600" />
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                        </button>
-                        <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                            <LogOut size={20} className="text-slate-600" />
-                        </button>
-                    </div>
-                </div>
-            </header>
-
             <main className="max-w-7xl mx-auto px-6 py-8">
                 {/* Profile Section */}
                 <div className="mb-8 animate-fade-in">
@@ -171,8 +134,8 @@ export default function EmployeeDashboard() {
                                             </div>
                                         </div>
                                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${task.priority === 'high' ? 'bg-red-100 text-red-700' :
-                                                task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                                                    'bg-green-100 text-green-700'
+                                            task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                                'bg-green-100 text-green-700'
                                             }`}>
                                             {task.priority}
                                         </span>

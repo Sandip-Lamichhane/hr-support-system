@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { Menu, Search, Bell, User } from "lucide-react";
 
 const Topbar = ({ sidebarOpen, setSidebarOpen }) => {
@@ -38,6 +39,9 @@ const Topbar = ({ sidebarOpen, setSidebarOpen }) => {
 
                 {/* Right */}
                 <div className="flex items-center gap-2">
+                    {/* Date / Time block - placed between search and notification */}
+                    <DateTimeBlock />
+
                     <button className="relative p-2 hover:bg-sky-50 rounded-lg">
                         <Bell className="w-5 h-5 text-gray-600" />
                         <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
@@ -55,6 +59,30 @@ const Topbar = ({ sidebarOpen, setSidebarOpen }) => {
                     </button>
                 </div>
             </div>
+        </div>
+    );
+};
+
+const DateTimeBlock = () => {
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const formatTime = (date) => {
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    };
+
+    const formatDate = (date) => {
+        return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    };
+
+    return (
+        <div className="hidden md:flex flex-col text-right text-sm mr-2">
+            <span className="text-gray-500">{formatDate(currentTime)}</span>
+            <span className="text-gray-900 font-semibold">{formatTime(currentTime)}</span>
         </div>
     );
 };
