@@ -1,14 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Ticket, Clock, CheckCircle, XCircle, AlertCircle, TrendingUp, Calendar, MessageSquare, UserCheck, Activity, ArrowUp, ArrowDown, MoreVertical } from 'lucide-react';
+import api from '../../services/api';
 
 const AdminDashboard = () => {
     const [timeRange, setTimeRange] = useState('week');
+    const [users, setUsers] = useState([]);
+    const [tickets, setTickets] = useState([]);
+    const [departments, setDepartments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Sample data
+    // Fetch data from API
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const [usersRes, ticketsRes, deptsRes] = await Promise.all([
+                    api.get('/users'),
+                    api.get('/tickets'),
+                    api.get('/departments')
+                ]);
+
+                setUsers(usersRes.data);
+                setTickets(ticketsRes.data);
+                setDepartments(deptsRes.data);
+            } catch (err) {
+                console.error('Error fetching dashboard data:', err);
+                setError('Failed to load dashboard data');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    // Helper function to safely get status
+    const getTicketStatus = (ticket) => {
+        if (!ticket || !ticket.status) return '';
+        return String(ticket.status).toLowerCase().trim();
+    };
+
+    // Calculate statistics
     const stats = [
         {
             label: 'Total Employees',
-            value: '248',
+            value: users?.length ? users.length.toString() : '0',
             change: '+12%',
             trend: 'up',
             icon: Users,
@@ -17,7 +54,7 @@ const AdminDashboard = () => {
         },
         {
             label: 'Open Tickets',
-            value: '34',
+            value: (tickets && Array.isArray(tickets)) ? tickets.filter(t => getTicketStatus(t) === 'open').length.toString() : '0',
             change: '-8%',
             trend: 'down',
             icon: Ticket,
@@ -26,7 +63,7 @@ const AdminDashboard = () => {
         },
         {
             label: 'Pending Reviews',
-            value: '17',
+            value: (tickets && Array.isArray(tickets)) ? tickets.filter(t => getTicketStatus(t) === 'in progress').length.toString() : '0',
             change: '+5%',
             trend: 'up',
             icon: Clock,
@@ -35,7 +72,7 @@ const AdminDashboard = () => {
         },
         {
             label: 'Resolved Today',
-            value: '28',
+            value: (tickets && Array.isArray(tickets)) ? tickets.filter(t => getTicketStatus(t) === 'resolved').length.toString() : '0',
             change: '+15%',
             trend: 'up',
             icon: CheckCircle,
@@ -44,18 +81,52 @@ const AdminDashboard = () => {
         },
     ];
 
-    const recentTickets = [
-        { id: 'TKT-1045', employee: 'Sarah Johnson', issue: 'Payroll Discrepancy', priority: 'High', status: 'Open', time: '10 mins ago', avatar: 'SJ' },
-        { id: 'TKT-1044', employee: 'Michael Chen', issue: 'Leave Request Approval', priority: 'Medium', status: 'In Progress', time: '1 hour ago', avatar: 'MC' },
-        { id: 'TKT-1043', employee: 'Emily Rodriguez', issue: 'Benefits Enrollment', priority: 'Low', status: 'Open', time: '2 hours ago', avatar: 'ER' },
-        { id: 'TKT-1042', employee: 'James Wilson', issue: 'System Access Issue', priority: 'High', status: 'Assigned', time: '3 hours ago', avatar: 'JW' },
-        { id: 'TKT-1041', employee: 'Lisa Anderson', issue: 'Document Request', priority: 'Medium', status: 'Open', time: '5 hours ago', avatar: 'LA' },
-    ];
+    // Get recent tickets (last 5)
+    const recentTickets = (tickets && Array.isArray(tickets)) ? tickets.slice(0, 5).map(ticket => ({
+        id: ticket.ticket_number,
+        employee: ticket.assignee?.name || 'Unassigned',
+        issue: ticket.title,
+        priority: ticket.priority,
+        status: ticket.status,
+        time: ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : 'N/A',
+        avatar: (ticket.assignee?.name || 'U').substring(0, 2).toUpperCase()
+    })) : [];
 
-    const recentEmployees = [
-        { name: 'David Martinez', position: 'Software Engineer', department: 'Engineering', status: 'Active', joinDate: '2024-12-10', avatar: 'DM' },
-        { name: 'Rachel Green', position: 'HR Manager', department: 'Human Resources', status: 'Active', joinDate: '2024-12-08', avatar: 'RG' },
-        { name: 'Tom Holland', position: 'Marketing Specialist', department: 'Marketing', status: 'Active', joinDate: '2024-12-05', avatar: 'TH' },
+    // Get recently added employees (last 3)
+    const recentEmployees = (users && Array.isArray(users)) ? users
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 3)
+        .map(user => ({
+            name: user.name || 'Unknown',
+            position: 'Employee',
+            department: (departments && Array.isArray(departments)) ? (departments.find(d => d.id === user.department_id)?.name || 'N/A') : 'N/A',
+            status: user.status || 'Active',
+            joinDate: user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A',
+            avatar: (user.name || 'U').substring(0, 2).toUpperCase()
+        })) : [];
+
+    // Calculate department overview with ticket percentages
+    const deptOverview = (departments && Array.isArray(departments)) ? (() => {
+        const totalTickets = (tickets && Array.isArray(tickets)) ? tickets.length : 0;
+        return departments.map(dept => {
+            const deptTicketCount = (tickets && Array.isArray(tickets)) ? tickets.filter(t => t.department_id === dept.id).length : 0;
+            const ticketPercentage = totalTickets > 0 ? Math.round((deptTicketCount / totalTickets) * 100) : 0;
+            return {
+                dept: dept.name || 'Unknown',
+                employees: users && Array.isArray(users) ? users.filter(u => u.department_id === dept.id).length : 0,
+                tickets: deptTicketCount,
+                ticketPercentage: ticketPercentage,
+                color: ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500', 'bg-sky-500'][departments.indexOf(dept) % 5]
+            };
+        });
+    })() : [];
+
+    // Ticket statistics by status
+    const ticketStats = [
+        { label: 'Open', icon: Ticket, color: 'bg-blue-100', iconColor: 'text-blue-600', count: (tickets && Array.isArray(tickets)) ? tickets.filter(t => getTicketStatus(t) === 'open').length : 0 },
+        { label: 'In Progress', icon: Clock, color: 'bg-purple-100', iconColor: 'text-purple-600', count: (tickets && Array.isArray(tickets)) ? tickets.filter(t => getTicketStatus(t) === 'in progress').length : 0 },
+        { label: 'Resolved', icon: CheckCircle, color: 'bg-emerald-100', iconColor: 'text-emerald-600', count: (tickets && Array.isArray(tickets)) ? tickets.filter(t => getTicketStatus(t) === 'resolved').length : 0 },
+        { label: 'Closed', icon: XCircle, color: 'bg-red-100', iconColor: 'text-red-600', count: (tickets && Array.isArray(tickets)) ? tickets.filter(t => getTicketStatus(t) === 'closed').length : 0 },
     ];
 
     const quickActions = [
@@ -66,6 +137,7 @@ const AdminDashboard = () => {
     ];
 
     const getPriorityColor = (priority) => {
+        if (!priority) return 'bg-gray-100 text-gray-700';
         switch (priority.toLowerCase()) {
             case 'high': return 'bg-red-100 text-red-700';
             case 'medium': return 'bg-amber-100 text-amber-700';
@@ -75,6 +147,7 @@ const AdminDashboard = () => {
     };
 
     const getStatusColor = (status) => {
+        if (!status) return 'bg-gray-100 text-gray-700';
         switch (status.toLowerCase()) {
             case 'open': return 'bg-blue-100 text-blue-700';
             case 'in progress': return 'bg-purple-100 text-purple-700';
@@ -84,6 +157,27 @@ const AdminDashboard = () => {
             default: return 'bg-gray-100 text-gray-700';
         }
     };
+
+    if (loading) {
+        return (
+            <div className="p-8 bg-gray-50 min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+                    <p className="mt-4 text-gray-600">Loading dashboard...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="p-8 bg-gray-50 min-h-screen flex items-center justify-center">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-red-700">{error}</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen">
@@ -157,54 +251,28 @@ const AdminDashboard = () => {
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h2 className="text-lg font-semibold text-gray-800 mb-6">Ticket Statistics</h2>
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <Ticket className="w-5 h-5 text-blue-600" />
+                        {ticketStats.map((stat, idx) => {
+                            const Icon = stat.icon;
+                            return (
+                                <div key={idx} className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center`}>
+                                            <Icon className={`w-5 h-5 ${stat.iconColor}`} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-800">{stat.label}</p>
+                                            <p className="text-xs text-gray-500">
+                                                {stat.label === 'Open' && 'Awaiting review'}
+                                                {stat.label === 'In Progress' && 'Being worked on'}
+                                                {stat.label === 'Resolved' && 'Completed'}
+                                                {stat.label === 'Closed' && 'Marked invalid'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className="text-2xl font-bold text-gray-800">{stat.count}</span>
                                 </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-800">Open</p>
-                                    <p className="text-xs text-gray-500">Awaiting review</p>
-                                </div>
-                            </div>
-                            <span className="text-2xl font-bold text-gray-800">34</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                    <Clock className="w-5 h-5 text-purple-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-800">In Progress</p>
-                                    <p className="text-xs text-gray-500">Being worked on</p>
-                                </div>
-                            </div>
-                            <span className="text-2xl font-bold text-gray-800">12</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                                    <CheckCircle className="w-5 h-5 text-emerald-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-800">Resolved</p>
-                                    <p className="text-xs text-gray-500">This week</p>
-                                </div>
-                            </div>
-                            <span className="text-2xl font-bold text-gray-800">89</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                                    <XCircle className="w-5 h-5 text-red-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-800">Irrelevant</p>
-                                    <p className="text-xs text-gray-500">Marked invalid</p>
-                                </div>
-                            </div>
-                            <span className="text-2xl font-bold text-gray-800">7</span>
-                        </div>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -212,13 +280,7 @@ const AdminDashboard = () => {
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
                     <h2 className="text-lg font-semibold text-gray-800 mb-6">Department Overview</h2>
                     <div className="space-y-4">
-                        {[
-                            { dept: 'Engineering', count: 85, tickets: 12, color: 'bg-blue-500' },
-                            { dept: 'Sales', count: 52, tickets: 8, color: 'bg-emerald-500' },
-                            { dept: 'Marketing', count: 38, tickets: 5, color: 'bg-purple-500' },
-                            { dept: 'Human Resources', count: 24, tickets: 3, color: 'bg-amber-500' },
-                            { dept: 'Operations', count: 49, tickets: 6, color: 'bg-sky-500' },
-                        ].map((dept, idx) => (
+                        {deptOverview.slice(0, 5).map((dept, idx) => (
                             <div key={idx} className="flex items-center gap-4">
                                 <div className="flex-1">
                                     <div className="flex items-center justify-between mb-2">
@@ -232,7 +294,7 @@ const AdminDashboard = () => {
                                     <div className="w-full bg-gray-100 rounded-full h-2">
                                         <div
                                             className={`${dept.color} h-2 rounded-full transition-all`}
-                                            style={{ width: `${(dept.count / 85) * 100}%` }}
+                                            style={{ width: `${deptOverview.length > 0 ? (dept.count / Math.max(...deptOverview.map(d => d.count), 1)) * 100 : 0}%` }}
                                         ></div>
                                     </div>
                                 </div>
