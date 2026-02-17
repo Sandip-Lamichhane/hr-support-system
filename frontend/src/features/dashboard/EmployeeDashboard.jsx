@@ -1,39 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, FileText, User, Bell, LogOut, ChevronRight, Zap } from 'lucide-react';
+import { Calendar, Clock, FileText, User, Bell, LogOut, ChevronRight, Zap, AlertCircle } from 'lucide-react';
+import api from '../../services/api';
 
 export default function EmployeeDashboard() {
-
-
-
-    // Mock data
-    const employee = {
-        name: 'Sarah Johnson',
-        position: 'Senior Product Designer',
-        department: 'Design',
-        profileImage: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-        email: 'sarah.johnson@company.com',
-        joinDate: 'Jan 15, 2021'
-    };
-
-    const leaveBalance = {
-        available: 12,
-        used: 8,
-        pending: 2,
-        total: 22
-    };
-
-    const attendance = {
-        present: 18,
-        absent: 1,
-        leave: 2,
-        workFromHome: 5
-    };
-
-    const upcomingTasks = [
-        { id: 1, title: 'Q1 Performance Review', dueDate: 'Feb 15', priority: 'high' },
-        { id: 2, title: 'Project Kickoff Meeting', dueDate: 'Feb 10', priority: 'medium' },
-        { id: 3, title: 'Update Portfolio', dueDate: 'Feb 28', priority: 'low' }
-    ];
+    const [employee, setEmployee] = useState(null);
+    const [upcomingTasks, setUpcomingTasks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const recentDocuments = [
         { id: 1, title: 'Company Handbook', date: 'Jan 5', type: 'PDF' },
@@ -46,12 +19,102 @@ export default function EmployeeDashboard() {
         { id: 2, title: 'Employee Wellness Program Updates', date: '1 week ago' }
     ];
 
-    const quickStats = [
-        { label: 'Leave Balance', value: `${leaveBalance.available}/${leaveBalance.total}`, icon: Calendar, color: 'from-blue-500 to-blue-600' },
-        { label: 'This Month Attendance', value: `${attendance.present}/${attendance.present + attendance.absent}`, icon: Clock, color: 'from-emerald-500 to-emerald-600' },
-        { label: 'Pending Requests', value: leaveBalance.pending, icon: FileText, color: 'from-purple-500 to-purple-600' }
-    ];
+    // Fetch current user and their tasks
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true);
+                
+                // Fetch current user
+                const userResponse = await api.get('/me');
+                const userData = userResponse.data;
+                
+                // Fetch departments to get department name from ID
+                let departmentName = 'N/A';
+                try {
+                    const departmentsResponse = await api.get('/departments');
+                    const departments = departmentsResponse.data;
+                    const userDept = departments.find(dept => dept.id === userData.department_id);
+                    departmentName = userDept?.name || 'N/A';
+                } catch (deptErr) {
+                    console.error('Error fetching departments:', deptErr);
+                    // Fallback to relationship if available
+                    departmentName = userData.department?.name || 'N/A';
+                }
+                
+                setEmployee({
+                    name: userData.name,
+                    position: userData.role || 'Employee',
+                    department: departmentName,
+                    profileImage: `https://ui-avatars.com/api/?name=${userData.name.replace(/ /g, '+')}&background=random&color=fff`,
+                    email: userData.email,
+                    joinDate: userData.created_at ? new Date(userData.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A',
+                    status: userData.status
+                });
 
+                // Fetch tickets assigned to the current user
+                const ticketsResponse = await api.get('/tickets', {
+                    params: {
+                        assigned_to: userData.id,
+                        per_page: 10
+                    }
+                });
+                
+                const tickets = ticketsResponse.data.data || [];
+                // Filter and format tickets for display
+                const formattedTasks = tickets.slice(0, 5).map(ticket => ({
+                    id: ticket.id,
+                    title: ticket.title,
+                    dueDate: ticket.due_date ? new Date(ticket.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No due date',
+                    priority: ticket.priority || 'medium'
+                }));
+                
+                setUpcomingTasks(formattedTasks);
+                setError(null);
+            } catch (err) {
+                console.error('Error fetching dashboard data:', err);
+                setError('Failed to load dashboard data');
+                // Set empty state on error
+                setEmployee(null);
+                setUpcomingTasks([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    const quickStats = employee ? [
+        { label: 'Department', value: employee.department, icon: Calendar, color: 'from-blue-500 to-blue-600' },
+        { label: 'Status', value: employee.status, icon: Clock, color: 'from-emerald-500 to-emerald-600' },
+        { label: 'Open Tasks', value: upcomingTasks.length, icon: FileText, color: 'from-purple-500 to-purple-600' }
+    ] : [];
+
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block animate-spin">
+                        <div className="h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+                    </div>
+                    <p className="mt-4 text-slate-600">Loading dashboard...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !employee) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
+                <div className="text-center bg-white rounded-2xl p-8 border border-slate-200/50 shadow-sm">
+                    <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
+                    <p className="text-slate-600">{error || 'Failed to load employee data'}</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
@@ -60,11 +123,6 @@ export default function EmployeeDashboard() {
                 <div className="mb-8 animate-fade-in">
                     <div className="bg-white rounded-2xl p-8 border border-slate-200/50 shadow-sm">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                            <img
-                                src={employee.profileImage}
-                                alt={employee.name}
-                                className="w-24 h-24 rounded-xl object-cover shadow-md"
-                            />
                             <div className="flex-1">
                                 <h2 className="text-3xl font-bold text-slate-900 mb-1">{employee.name}</h2>
                                 <p className="text-lg text-blue-600 font-medium mb-2">{employee.position}</p>
@@ -78,9 +136,11 @@ export default function EmployeeDashboard() {
                                     <span>Joined {employee.joinDate}</span>
                                 </div>
                             </div>
-                            <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
-                                Edit Profile
-                            </button>
+                            <img
+                                src={employee.profileImage}
+                                alt={employee.name}
+                                className="w-24 h-24 rounded-xl object-cover shadow-md"
+                            />
                         </div>
                     </div>
                 </div>
@@ -107,7 +167,7 @@ export default function EmployeeDashboard() {
 
                 {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left Column - Tasks and Leave */}
+                    {/* Left Column - Tasks */}
                     <div className="lg:col-span-2 space-y-8">
                         {/* Upcoming Tasks */}
                         <div className="bg-white rounded-2xl p-8 border border-slate-200/50 shadow-sm">
@@ -121,49 +181,32 @@ export default function EmployeeDashboard() {
                                 </a>
                             </div>
                             <div className="space-y-4">
-                                {upcomingTasks.map((task) => (
-                                    <div
-                                        key={task.id}
-                                        className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-transparent rounded-lg border border-slate-100 hover:border-slate-200 transition-colors group cursor-pointer"
-                                    >
-                                        <div className="flex items-center gap-4 flex-1">
-                                            <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-blue-600 cursor-pointer" />
-                                            <div>
-                                                <p className="font-medium text-slate-900 group-hover:text-blue-600 transition-colors">{task.title}</p>
-                                                <p className="text-sm text-slate-500">Due: {task.dueDate}</p>
-                                            </div>
-                                        </div>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${task.priority === 'high' ? 'bg-red-100 text-red-700' :
-                                            task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                                                'bg-green-100 text-green-700'
-                                            }`}>
-                                            {task.priority}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Leave Request */}
-                        <div className="bg-white rounded-2xl p-8 border border-slate-200/50 shadow-sm">
-                            <h3 className="text-xl font-bold text-slate-900 mb-6">Leave Balance</h3>
-                            <div className="space-y-6">
-                                <div>
-                                    <div className="flex justify-between items-end mb-3">
-                                        <span className="text-sm font-medium text-slate-700">Available Days</span>
-                                        <span className="text-2xl font-bold text-slate-900">{leaveBalance.available} days</span>
-                                    </div>
-                                    <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                                {upcomingTasks.length > 0 ? (
+                                    upcomingTasks.map((task) => (
                                         <div
-                                            className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-500"
-                                            style={{ width: `${(leaveBalance.available / leaveBalance.total) * 100}%` }}
-                                        ></div>
+                                            key={task.id}
+                                            className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-transparent rounded-lg border border-slate-100 hover:border-slate-200 transition-colors group cursor-pointer"
+                                        >
+                                            <div className="flex items-center gap-4 flex-1">
+                                                <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-blue-600 cursor-pointer" />
+                                                <div>
+                                                    <p className="font-medium text-slate-900 group-hover:text-blue-600 transition-colors">{task.title}</p>
+                                                    <p className="text-sm text-slate-500">Due: {task.dueDate}</p>
+                                                </div>
+                                            </div>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${task.priority === 'high' ? 'bg-red-100 text-red-700' :
+                                                task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                                    'bg-green-100 text-green-700'
+                                                }`}>
+                                                {task.priority}
+                                            </span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-slate-500">
+                                        <p>No tasks assigned yet</p>
                                     </div>
-                                    <p className="text-xs text-slate-500 mt-2">Used: {leaveBalance.used} days | Pending: {leaveBalance.pending} days</p>
-                                </div>
-                                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition-colors">
-                                    Request Leave
-                                </button>
+                                )}
                             </div>
                         </div>
                     </div>

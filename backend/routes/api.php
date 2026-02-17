@@ -31,4 +31,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('/tickets', [TicketController::class, 'GetTickets']);
     Route::post('/tickets', [TicketController::class, 'StoreTicket']);
+    Route::post('/tickets/{ticket}/update', [TicketController::class, 'UpdateTicket']);
+    Route::put('/tickets/{ticket}', [TicketController::class, 'UpdateTicket']);
+    Route::patch('/tickets/{ticket}/assign', [TicketController::class, 'AssignTicket']);
 });
