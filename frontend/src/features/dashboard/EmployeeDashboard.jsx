@@ -29,18 +29,8 @@ export default function EmployeeDashboard() {
                 const userResponse = await api.get('/me');
                 const userData = userResponse.data;
                 
-                // Fetch departments to get department name from ID
-                let departmentName = 'N/A';
-                try {
-                    const departmentsResponse = await api.get('/departments');
-                    const departments = departmentsResponse.data;
-                    const userDept = departments.find(dept => dept.id === userData.department_id);
-                    departmentName = userDept?.name || 'N/A';
-                } catch (deptErr) {
-                    console.error('Error fetching departments:', deptErr);
-                    // Fallback to relationship if available
-                    departmentName = userData.department?.name || 'N/A';
-                }
+                // Get department name from user's department relationship
+                const departmentName = userData.departments?.name || 'N/A';
                 
                 setEmployee({
                     name: userData.name,

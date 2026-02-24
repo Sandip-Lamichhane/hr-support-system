@@ -5,10 +5,7 @@ use App\Http\Controllers\Settings\CategoryController;
 use App\Http\Controllers\Settings\DepartmentController;
 use App\Http\Controllers\Ticket\TicketController;
 use App\Http\Controllers\User\UserController;
-use App\Models\category;
-use Illuminate\Container\Attributes\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
 
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
