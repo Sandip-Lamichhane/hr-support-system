@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, Search, Bell, User } from "lucide-react";
+import { useAuth } from "../../utils/context/auth";
 
 const Topbar = ({ sidebarOpen, setSidebarOpen }) => {
+    const { user } = useAuth();
     return (
         <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-50 shadow-sm">
             <div className="flex items-center justify-between h-full px-4">
@@ -54,7 +56,7 @@ const Topbar = ({ sidebarOpen, setSidebarOpen }) => {
                             <User className="w-4 h-4 text-white" />
                         </div>
                         <span className="hidden lg:block text-sm font-medium text-gray-700">
-                            Admin
+                            {user?.name || "Admin"}
                         </span>
                     </button>
                 </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Plus, Download } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useUsers } from '../hooks/useUsers';
 import UserStats from '../components/UserStats';
 import UserTable from '../components/UserTable';
@@ -104,6 +105,43 @@ const UserManagement = () => {
         );
     };
 
+    const exportAllUsers = () => {
+        if (!users || users.length === 0) {
+            toast.error('No users to export');
+            return;
+        }
+
+        const headers = ['ID', 'Name', 'Email', 'Role', 'Status', 'Department'];
+
+        const rows = users.map(u => {
+            const deptName = u.department?.name || (departments?.find(d => d.id === u.department_id)?.name) || '';
+            return [
+                u.id ?? '',
+                u.name ?? '',
+                u.email ?? '',
+                u.role ?? '',
+                u.status ?? '',
+                deptName
+            ];
+        });
+
+        const csvContent = [headers, ...rows]
+            .map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `users_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        toast.success('Export started');
+    };
+
     // Loading state
     if (loading) {
         return (
@@ -172,7 +210,7 @@ const UserManagement = () => {
                         </select>
                     </div>
                     <div className="flex gap-2 w-full md:w-auto">
-                        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-100 transition-all">
+                        <button onClick={exportAllUsers} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-100 transition-all">
                             <Download className="w-4 h-4" />
                             <span>Export</span>
                         </button>

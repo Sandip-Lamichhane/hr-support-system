@@ -35,7 +35,7 @@ export const createTicket = async (formData) => {
 
 // Update ticket
 export const updateTicket = async (id, data) => {
-    const response = await api.put(`/tickets/${id}`, data, {
+    const response = await api.post(`/tickets/${id}/update`, data, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },

@@ -159,13 +159,19 @@ const TicketManagement = () => {
             submitData.append('priority', formData.priority);
             submitData.append('category_id', formData.category_id);
             submitData.append('department_id', formData.department_id);
-            submitData.append('due_date', formData.due_date);
-            submitData.append('assigned_to', formData.assigned_to);
+            
+            if (formData.due_date) {
+                submitData.append('due_date', formData.due_date);
+            }
+            
+            if (formData.assigned_to) {
+                submitData.append('assigned_to', formData.assigned_to);
+            }
 
-            // Append new files
+            // Append new files with correct field name
             if (formData.files && formData.files.length > 0) {
                 formData.files.forEach((file) => {
-                    submitData.append('files', file);
+                    submitData.append('attachments[]', file);
                 });
             }
 
@@ -174,7 +180,10 @@ const TicketManagement = () => {
             handleModalClose('edit');
             fetchTickets();
         } catch (error) {
-            toast.error('Error updating ticket!');
+            console.error(error);
+            toast.error(
+                error.response?.data?.message || 'Error updating ticket!'
+            );
         }
     };
 

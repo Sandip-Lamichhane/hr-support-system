@@ -5,10 +5,7 @@ use App\Http\Controllers\Settings\CategoryController;
 use App\Http\Controllers\Settings\DepartmentController;
 use App\Http\Controllers\Ticket\TicketController;
 use App\Http\Controllers\User\UserController;
-use App\Models\category;
-use Illuminate\Container\Attributes\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
 
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
@@ -31,4 +28,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('/tickets', [TicketController::class, 'GetTickets']);
     Route::post('/tickets', [TicketController::class, 'StoreTicket']);
+    Route::post('/tickets/{ticket}/update', [TicketController::class, 'UpdateTicket']);
+    Route::put('/tickets/{ticket}', [TicketController::class, 'UpdateTicket']);
+    Route::patch('/tickets/{ticket}/assign', [TicketController::class, 'AssignTicket']);
 });
