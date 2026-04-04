@@ -7,6 +7,7 @@ import AdminLayout from "../layouts/admin/AdminLayout";
 import AdminDashboard from "../features/dashboard/AdminDashboard";
 import UserManagement from "../features/users/pages/UserManagement";
 import TicketManagement from "../features/tickets/pages/AdminTickets";
+import TicketDetail from "../features/tickets/pages/TicketDetail";
 import ProtectedRoute from "./ProtectedRoute";
 import Department from "../features/settings/Department";
 import Category from "../features/settings/Category";
@@ -34,6 +35,7 @@ export default function AppRoutes() {
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="tickets" element={<TicketManagement />} />
+                    <Route path="tickets/:ticketNumber" element={<TicketDetail />} />
                     <Route path="users" element={<UserManagement />} />
                     <Route path="settings/department" element={<Department />} />
                     <Route path="settings/category" element={<Category />} />
@@ -45,6 +47,7 @@ export default function AppRoutes() {
                 <Route path="/employee" element={<EmployeeLayout />}>
                     <Route path="dashboard" element={<EmployeeDashboard />} />
                     <Route path="tickets" element={<EmployeeTickets />} />
+                    <Route path="tickets/:ticketNumber" element={<TicketDetail />} />
                 </Route>
             </Route>
 

@@ -23,12 +23,22 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('/category', [CategoryController::class, 'GetCategory'])->name('getCategories');
     Route::post('/category', [CategoryController::class, 'StoreCategory'])->name('StoreCategory');
-    Route::put('/category/{id}', [CategoryController::class, 'UpdateCategory'])->name('updateCategory');
-    Route::patch('/category/{id}/status', [CategoryController::class, 'UpdateCategoryStatus'])->name('UpdateCategoryStatus');
+    Route::put('/category/{id}', [CategoryController::class, 'UpdateCategory']);
+    Route::patch('/category/{id}/status', [CategoryController::class, 'UpdateCategoryStatus']);
 
-    Route::get('/tickets', [TicketController::class, 'GetTickets']);
     Route::post('/tickets', [TicketController::class, 'StoreTicket']);
-    Route::post('/tickets/{ticket}/update', [TicketController::class, 'UpdateTicket']);
-    Route::put('/tickets/{ticket}', [TicketController::class, 'UpdateTicket']);
-    Route::patch('/tickets/{ticket}/assign', [TicketController::class, 'AssignTicket']);
+    Route::get('/tickets', [TicketController::class, 'GetTickets']);
+    Route::get('/tickets/{ticket_number}', [TicketController::class, 'GetTicket']);
+    Route::post('/tickets/{ticket_number}/update', [TicketController::class, 'UpdateTicket']);
+    Route::put('/tickets/{ticket_number}', [TicketController::class, 'UpdateTicket']);
+    Route::patch('/tickets/{ticket_number}/assign', [TicketController::class, 'AssignTicket']);
+    Route::post('/ai-suggest', [TicketController::class, 'AiSuggest']);
 });
+
+// Temporary: Allow public access to ticket endpoints for development
+Route::get('/tickets', [TicketController::class, 'GetTickets']);
+Route::get('/tickets/{ticket_number}', [TicketController::class, 'GetTicket']);
+Route::post('/tickets/{ticket_number}/update', [TicketController::class, 'UpdateTicket']);
+Route::get('/category', [CategoryController::class, 'GetCategory'])->name('getCategories');
+Route::get('/departments', [DepartmentController::class, 'GetDepartment'])->name('getDepartments');
+Route::get('/users', [UserController::class, 'GetUser'])->name('GetUsers');

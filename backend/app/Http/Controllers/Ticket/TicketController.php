@@ -109,8 +109,13 @@ class TicketController extends Controller
         ], 201);
     }
 
-    public function UpdateTicket(Request $request, Ticket $ticket)
+    public function UpdateTicket(Request $request, $ticketNumber)
     {
+        $ticket = Ticket::where('ticket_number', $ticketNumber)->first();
+        if (!$ticket) {
+            return response()->json(['message' => 'Ticket not found'], 404);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -167,8 +172,13 @@ class TicketController extends Controller
         }
     }
 
-    public function AssignTicket(Request $request, Ticket $ticket)
+    public function AssignTicket(Request $request, $ticketNumber)
     {
+        $ticket = Ticket::where('ticket_number', $ticketNumber)->first();
+        if (!$ticket) {
+            return response()->json(['message' => 'Ticket not found'], 404);
+        }
+
         $validated = $request->validate([
             'assigned_to' => 'required|exists:users,id',
         ]);
@@ -188,5 +198,20 @@ class TicketController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function GetTicket($ticketNumber)
+    {
+        $ticket = Ticket::where('ticket_number', $ticketNumber)->first();
+        if (!$ticket) {
+            return response()->json(['message' => 'Ticket not found'], 404);
+        }
+        return response()->json($ticket->load([
+            'category:id,name',
+            'department:id,name',
+            'assignee:id,name',
+            'creator:id,name',
+            'attachments:id,ticket_id,file_path,file_type',
+        ]));
     }
 }

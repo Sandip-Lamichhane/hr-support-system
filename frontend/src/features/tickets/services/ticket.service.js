@@ -34,8 +34,8 @@ export const createTicket = async (formData) => {
 
 
 // Update ticket
-export const updateTicket = async (id, data) => {
-    const response = await api.post(`/tickets/${id}/update`, data, {
+export const updateTicket = async (ticketNumber, data) => {
+    const response = await api.post(`/tickets/${ticketNumber}/update`, data, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
@@ -50,8 +50,8 @@ export const deleteTicket = async (id) => {
 };
 
 // Assign ticket to employee
-export const assignTicket = async (ticketId, employeeId) => {
-    const response = await api.patch(`/tickets/${ticketId}/assign`, {
+export const assignTicket = async (ticketNumber, employeeId) => {
+    const response = await api.patch(`/tickets/${ticketNumber}/assign`, {
         assigned_to: employeeId,
     });
     return response.data;

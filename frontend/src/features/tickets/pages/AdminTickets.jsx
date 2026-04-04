@@ -1,5 +1,6 @@
 // src/features/tickets/pages/TicketManagement.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTickets } from '../hooks/useTickets';
 import TicketStats from '../components/TicketStats';
@@ -9,6 +10,7 @@ import TicketFormModal from '../components/TicketFormModal';
 import AssignModal from '../components/AssignModal';
 
 const TicketManagement = () => {
+    const navigate = useNavigate();
     const {
         tickets,
         employees,
@@ -175,7 +177,7 @@ const TicketManagement = () => {
                 });
             }
 
-            await updateTicket(selectedTicket.id, submitData);
+            await updateTicket(selectedTicket.ticket_number, submitData);
             toast.success('Ticket updated successfully!');
             handleModalClose('edit');
             fetchTickets();
@@ -189,7 +191,7 @@ const TicketManagement = () => {
 
     const handleAssignSubmit = async () => {
         try {
-            await assignTicket(selectedTicket.id, assignToId);
+            await assignTicket(selectedTicket.ticket_number, assignToId);
             toast.success('Ticket assigned successfully!');
             handleModalClose('assign');
             setAssignToId('');
@@ -197,6 +199,10 @@ const TicketManagement = () => {
         } catch (error) {
             toast.error('Error assigning ticket!');
         }
+    };
+
+    const handleViewClick = (ticket) => {
+        navigate(`/admin/tickets/${ticket.ticket_number}`);
     };
 
     const handleDelete = async (id) => {
@@ -249,6 +255,7 @@ const TicketManagement = () => {
                             onEdit={handleEditClick}
                             onAssign={handleAssignClick}
                             onDelete={handleDelete}
+                            onView={handleViewClick}
                         />
                     )}
                 </div>
