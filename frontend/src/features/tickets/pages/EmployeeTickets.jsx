@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTickets } from '../hooks/useTickets';
 import TicketStats from '../components/TicketStats';
@@ -8,6 +9,7 @@ import TicketFormModal from '../components/TicketFormModal';
 import { useAuth } from '../../../utils/context/auth';
 
 const EmployeeTickets = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
 
     const {
@@ -152,7 +154,7 @@ const EmployeeTickets = () => {
                 formData.files.forEach((file) => submitData.append('files', file));
             }
 
-            await updateTicket(selectedTicket.id, submitData);
+            await updateTicket(selectedTicket.ticket_number, submitData);
             toast.success('Ticket updated successfully!');
             handleModalClose('edit');
             fetchTickets();
@@ -175,6 +177,10 @@ const EmployeeTickets = () => {
                 toast.error('Error deleting ticket!');
             }
         }
+    };
+
+    const handleViewClick = (ticket) => {
+        navigate(`/employee/tickets/${ticket.ticket_number}`);
     };
 
     return (
@@ -211,6 +217,7 @@ const EmployeeTickets = () => {
                             onEdit={handleEditClick}
                             onAssign={() => { /* no-op for employees */ }}
                             onDelete={handleDelete}
+                            onView={handleViewClick}
                         />
                     )}
                 </div>

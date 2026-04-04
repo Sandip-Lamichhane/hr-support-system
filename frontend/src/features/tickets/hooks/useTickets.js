@@ -96,10 +96,10 @@ export const useTickets = () => {
     };
 
 
-    const updateTicket = async (id, ticketData) => {
+    const updateTicket = async (ticketNumber, ticketData) => {
         setLoading(true);
         try {
-            await updateTicketAPI(id, ticketData);
+            await updateTicketAPI(ticketNumber, ticketData);
         } finally {
             setLoading(false);
         }
@@ -114,10 +114,10 @@ export const useTickets = () => {
         }
     };
 
-    const assignTicket = async (ticketId, employeeId) => {
+    const assignTicket = async (ticketNumber, employeeId) => {
         setLoading(true);
         try {
-            await assignTicketAPI(ticketId, employeeId);
+            await assignTicketAPI(ticketNumber, employeeId);
         } finally {
             setLoading(false);
         }
